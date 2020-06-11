@@ -25,6 +25,7 @@ package controller
 import (
 	"errors"
 	"fmt"
+	"math"
 	"reflect"
 	"sort"
 	"sync"
@@ -323,22 +324,29 @@ func (c *controller) manageReplicas(allMachines []*v1alpha1.Machine, machineSet 
 		return nil
 	}
 
-	var activeMachines, staleMachines []*v1alpha1.Machine
+	var activeMachines, runningMachines, staleMachines []*v1alpha1.Machine
 	for _, machine := range allMachines {
 		if IsMachineActive(machine) {
-			//klog.Info("Active machine: ", machine.Name)
 			activeMachines = append(activeMachines, machine)
+
+			if IsMachineRunning(machine) {
+				runningMachines = append(runningMachines, machine)
+			}
 		} else if IsMachineFailed(machine) {
 			staleMachines = append(staleMachines, machine)
 		}
 	}
 
+	machineDeletionWindow := c.calculateStaleMachineDeletionWindow(activeMachines, runningMachines, staleMachines, machineSet)
+
 	if len(staleMachines) >= 1 {
 		klog.V(2).Infof("Deleting stale machines")
 	}
-	c.terminateMachines(staleMachines, machineSet)
+	deletedStaleMachines, _ := c.terminateStaleMachines(staleMachines, machineDeletionWindow, machineSet)
+	staleMachinesLeft := len(staleMachines) - deletedStaleMachines
 
 	diff := len(activeMachines) - int(machineSet.Spec.Replicas)
+
 	klog.V(4).Infof("Difference between current active replicas and desired replicas - %d", diff)
 
 	if diff < 0 {
@@ -349,6 +357,12 @@ func (c *controller) manageReplicas(allMachines []*v1alpha1.Machine, machineSet 
 		}
 
 		diff *= -1
+
+		// clamp machine creation to the count of recently deleted stale machines, so that we don't overshoot
+		if staleMachinesLeft > 0 && diff > deletedStaleMachines {
+			diff = deletedStaleMachines
+		}
+
 		if diff > BurstReplicas {
 			diff = BurstReplicas
 		}
@@ -686,6 +700,80 @@ func (c *controller) terminateMachines(inactiveMachines []*v1alpha1.Machine, mac
 	}
 
 	return nil
+}
+
+func (c *controller) terminateStaleMachines(inactiveMachines []*v1alpha1.Machine, deletionWindow int, machineSet *v1alpha1.MachineSet) (int, error) {
+	var (
+		deletedMachines int
+		wg              sync.WaitGroup
+		errCh           = make(chan error, deletionWindow)
+	)
+	defer close(errCh)
+
+	wg.Add(deletionWindow)
+	for deletedMachines = 0; deletedMachines < deletionWindow && deletedMachines < len(inactiveMachines); deletedMachines++ {
+		go c.prepareMachineForDeletion(inactiveMachines[deletedMachines], machineSet, &wg, errCh)
+	}
+	wg.Wait()
+
+	select {
+	case err := <-errCh:
+		// all errors have been reported before and they're likely to be the same, so we'll only return the first one we hit.
+		if err != nil {
+			return deletedMachines, err
+		}
+	default:
+	}
+
+	return deletedMachines, nil
+}
+
+// calculateStaleMachineDeletionWindow computes an amount of Failed Machines that can be deleted based on FailedMachineDeletionRatio
+func (c *controller) calculateStaleMachineDeletionWindow(activeMachines, runningMachines, inactiveMachines []*v1alpha1.Machine, machineSet *v1alpha1.MachineSet) int {
+	var (
+		deletionWindow           int
+		numOfActiveMachines      = len(activeMachines)
+		numOfRunningMachines     = len(runningMachines)
+		numOfInactiveMachines    = len(inactiveMachines)
+		desiredMachineSetReplica = int(machineSet.Spec.Replicas)
+	)
+
+	// nothing to do
+	if numOfInactiveMachines == 0 {
+		return 0
+	}
+
+	// Will not delete any stale machines. It is expected that the user deletes these machines manually.
+	if c.safetyOptions.FailedMachineDeletionRatio == 0 {
+		return 0
+	}
+
+	if c.safetyOptions.FailedMachineDeletionRatio == 1 {
+		return numOfInactiveMachines
+	}
+
+	if desiredMachineSetReplica == 0 {
+		deletionWindow = numOfInactiveMachines
+	} else {
+		deletionWindow = int(math.Round(float64(desiredMachineSetReplica) * c.safetyOptions.FailedMachineDeletionRatio))
+		if deletionWindow == 0 {
+			deletionWindow = 1
+		}
+
+		numOfActiveNotRunningMachines := numOfActiveMachines - numOfRunningMachines
+
+		if deletionWindow > numOfActiveNotRunningMachines {
+			deletionWindow -= numOfActiveNotRunningMachines
+		} else {
+			deletionWindow = 0
+		}
+	}
+
+	if deletionWindow > numOfInactiveMachines {
+		deletionWindow = numOfInactiveMachines
+	}
+
+	return deletionWindow
 }
 
 /*
