@@ -411,6 +411,7 @@ func (c *controller) checkVMObjects() {
 	c.checkAlicloudMachineClass()
 	c.checkPacketMachineClass()
 	c.checkVsphereMachineClass()
+	c.checkYandexMachineClass()
 }
 
 // checkAWSMachineClass checks for orphan VMs in AWSMachinesClasses
@@ -536,6 +537,29 @@ func (c *controller) checkVsphereMachineClass() {
 	}
 
 	for _, machineClass := range VsphereMachineClasses {
+
+		var machineClassInterface interface{}
+		machineClassInterface = machineClass
+
+		c.checkMachineClass(
+			machineClassInterface,
+			machineClass.Spec.SecretRef,
+			machineClass.Spec.CredentialsSecretRef,
+			machineClass.Name,
+			machineClass.Kind,
+		)
+	}
+}
+
+// checkYandexMachineClass checks for orphan VMs in YandexMachinesClasses
+func (c *controller) checkYandexMachineClass() {
+	YandexMachineClasses, err := c.yandexMachineClassLister.List(labels.Everything())
+	if err != nil {
+		klog.Error("SafetyController: Error while trying to LIST machineClasses ", err)
+		return
+	}
+
+	for _, machineClass := range YandexMachineClasses {
 
 		var machineClassInterface interface{}
 		machineClassInterface = machineClass

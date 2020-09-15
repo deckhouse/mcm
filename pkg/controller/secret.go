@@ -366,3 +366,32 @@ func (c *controller) vsphereMachineClassToSecretUpdate(oldObj interface{}, newOb
 func (c *controller) vsphereMachineClassToSecretDelete(obj interface{}) {
 	c.vsphereMachineClassToSecretAdd(obj)
 }
+
+func (c *controller) yandexMachineClassToSecretAdd(obj interface{}) {
+	machineClass, ok := obj.(*v1alpha1.YandexMachineClass)
+	if machineClass == nil || !ok {
+		return
+	}
+	c.secretQueue.Add(machineClass.Spec.SecretRef.Namespace + "/" + machineClass.Spec.SecretRef.Name)
+}
+
+func (c *controller) yandexMachineClassToSecretUpdate(oldObj interface{}, newObj interface{}) {
+	oldMachineClass, ok := oldObj.(*v1alpha1.YandexMachineClass)
+	if oldMachineClass == nil || !ok {
+		return
+	}
+	newMachineClass, ok := newObj.(*v1alpha1.YandexMachineClass)
+	if newMachineClass == nil || !ok {
+		return
+	}
+
+	if oldMachineClass.Spec.SecretRef.Name != newMachineClass.Spec.SecretRef.Name ||
+		oldMachineClass.Spec.SecretRef.Namespace != newMachineClass.Spec.SecretRef.Namespace {
+		c.secretQueue.Add(oldMachineClass.Spec.SecretRef.Namespace + "/" + oldMachineClass.Spec.SecretRef.Name)
+		c.secretQueue.Add(newMachineClass.Spec.SecretRef.Namespace + "/" + newMachineClass.Spec.SecretRef.Name)
+	}
+}
+
+func (c *controller) yandexMachineClassToSecretDelete(obj interface{}) {
+	c.yandexMachineClassToSecretAdd(obj)
+}

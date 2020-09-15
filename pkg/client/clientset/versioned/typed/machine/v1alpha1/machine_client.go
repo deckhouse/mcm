@@ -37,6 +37,7 @@ type MachineV1alpha1Interface interface {
 	OpenStackMachineClassesGetter
 	PacketMachineClassesGetter
 	VsphereMachineClassesGetter
+	YandexMachineClassesGetter
 }
 
 // MachineV1alpha1Client is used to interact with features provided by the machine.sapcloud.io group.
@@ -86,6 +87,10 @@ func (c *MachineV1alpha1Client) PacketMachineClasses(namespace string) PacketMac
 
 func (c *MachineV1alpha1Client) VsphereMachineClasses(namespace string) VsphereMachineClassInterface {
 	return newVsphereMachineClasses(c, namespace)
+}
+
+func (c *MachineV1alpha1Client) YandexMachineClasses(namespace string) YandexMachineClassInterface {
+	return newYandexMachineClasses(c, namespace)
 }
 
 // NewForConfig creates a new MachineV1alpha1Client for the given config.

@@ -48,6 +48,8 @@ type Interface interface {
 	PacketMachineClasses() PacketMachineClassInformer
 	// VsphereMachineClasses returns a VsphereMachineClassInformer.
 	VsphereMachineClasses() VsphereMachineClassInformer
+	// YandexMachineClasses returns a YandexMachineClassInformer.
+	YandexMachineClasses() YandexMachineClassInformer
 }
 
 type version struct {
@@ -119,4 +121,9 @@ func (v *version) PacketMachineClasses() PacketMachineClassInformer {
 // VsphereMachineClasses returns a VsphereMachineClassInformer.
 func (v *version) VsphereMachineClasses() VsphereMachineClassInformer {
 	return &vsphereMachineClassInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
+}
+
+// YandexMachineClasses returns a YandexMachineClassInformer.
+func (v *version) YandexMachineClasses() YandexMachineClassInformer {
+	return &yandexMachineClassInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
 }

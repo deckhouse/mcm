@@ -109,6 +109,13 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.VsphereMachineClassSpec":                       schema_pkg_apis_machine_v1alpha1_VsphereMachineClassSpec(ref),
 		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.VsphereMachineClassSpecResourceAllocationInfo": schema_pkg_apis_machine_v1alpha1_VsphereMachineClassSpecResourceAllocationInfo(ref),
 		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.VsphereMachineClassSpecRuntimeOptions":         schema_pkg_apis_machine_v1alpha1_VsphereMachineClassSpecRuntimeOptions(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.YandexMachineClass":                            schema_pkg_apis_machine_v1alpha1_YandexMachineClass(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.YandexMachineClassList":                        schema_pkg_apis_machine_v1alpha1_YandexMachineClassList(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.YandexMachineClassSpec":                        schema_pkg_apis_machine_v1alpha1_YandexMachineClassSpec(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.YandexMachineClassSpecBootDiskSpec":            schema_pkg_apis_machine_v1alpha1_YandexMachineClassSpecBootDiskSpec(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.YandexMachineClassSpecNetworkInterfaceSpecs":   schema_pkg_apis_machine_v1alpha1_YandexMachineClassSpecNetworkInterfaceSpecs(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.YandexMachineClassSpecResourcesSpec":           schema_pkg_apis_machine_v1alpha1_YandexMachineClassSpecResourcesSpec(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.YandexMachineClassSpecSchedulingPolicy":        schema_pkg_apis_machine_v1alpha1_YandexMachineClassSpecSchedulingPolicy(ref),
 		"k8s.io/api/core/v1.AWSElasticBlockStoreVolumeSource":                                                                    schema_k8sio_api_core_v1_AWSElasticBlockStoreVolumeSource(ref),
 		"k8s.io/api/core/v1.Affinity":                                    schema_k8sio_api_core_v1_Affinity(ref),
 		"k8s.io/api/core/v1.AttachedVolume":                              schema_k8sio_api_core_v1_AttachedVolume(ref),
@@ -4071,6 +4078,302 @@ func schema_pkg_apis_machine_v1alpha1_VsphereMachineClassSpecRuntimeOptions(ref 
 		},
 		Dependencies: []string{
 			"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.VsphereMachineClassSpecResourceAllocationInfo"},
+	}
+}
+
+func schema_pkg_apis_machine_v1alpha1_YandexMachineClass(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "YandexMachineClass TODO",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"metadata": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"),
+						},
+					},
+					"kind": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"apiVersion": {
+						SchemaProps: spec.SchemaProps{
+							Description: "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"spec": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.YandexMachineClassSpec"),
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.YandexMachineClassSpec", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+	}
+}
+
+func schema_pkg_apis_machine_v1alpha1_YandexMachineClassList(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "YandexMachineClassList is a collection of PacketMachineClasses.",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"kind": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"apiVersion": {
+						SchemaProps: spec.SchemaProps{
+							Description: "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"metadata": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"),
+						},
+					},
+					"items": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.YandexMachineClass"),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.YandexMachineClass", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
+	}
+}
+
+func schema_pkg_apis_machine_v1alpha1_YandexMachineClassSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"labels": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+					"metadata": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+					"regionID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"zoneID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"platformID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"resourcesSpec": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.YandexMachineClassSpecResourcesSpec"),
+						},
+					},
+					"bootDiskSpec": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.YandexMachineClassSpecBootDiskSpec"),
+						},
+					},
+					"networkInterfaceSpecs": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.YandexMachineClassSpecNetworkInterfaceSpecs"),
+									},
+								},
+							},
+						},
+					},
+					"schedulingPolicy": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.YandexMachineClassSpecSchedulingPolicy"),
+						},
+					},
+					"secretRef": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/api/core/v1.SecretReference"),
+						},
+					},
+					"credentialsSecretRef": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/api/core/v1.SecretReference"),
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.YandexMachineClassSpecBootDiskSpec", "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.YandexMachineClassSpecNetworkInterfaceSpecs", "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.YandexMachineClassSpecResourcesSpec", "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.YandexMachineClassSpecSchedulingPolicy", "k8s.io/api/core/v1.SecretReference"},
+	}
+}
+
+func schema_pkg_apis_machine_v1alpha1_YandexMachineClassSpecBootDiskSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"autoDelete": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"boolean"},
+							Format: "",
+						},
+					},
+					"typeID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"size": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int64",
+						},
+					},
+					"imageID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func schema_pkg_apis_machine_v1alpha1_YandexMachineClassSpecNetworkInterfaceSpecs(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"subnetID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"assignPublicIPAddress": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"boolean"},
+							Format: "",
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func schema_pkg_apis_machine_v1alpha1_YandexMachineClassSpecResourcesSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"cores": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int64",
+						},
+					},
+					"coreFraction": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int64",
+						},
+					},
+					"memory": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int64",
+						},
+					},
+					"gpus": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int64",
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func schema_pkg_apis_machine_v1alpha1_YandexMachineClassSpecSchedulingPolicy(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"preemptible": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"boolean"},
+							Format: "",
+						},
+					},
+				},
+			},
+		},
 	}
 }
 

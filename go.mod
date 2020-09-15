@@ -14,10 +14,13 @@ require (
 	github.com/emicklei/go-restful v2.9.6+incompatible // indirect
 	github.com/go-openapi/spec v0.19.2
 	github.com/golang/groupcache v0.0.0-20180513044358-24b0969c4cb7 // indirect
+	github.com/golang/protobuf v1.3.3
 	github.com/googleapis/gnostic v0.2.0 // indirect
 	github.com/gophercloud/gophercloud v0.7.0
 	github.com/gophercloud/utils v0.0.0-20200204043447-9864b6f1f12f
+	github.com/hashicorp/go-multierror v1.1.0 // indirect
 	github.com/json-iterator/go v1.1.9 // indirect
+	github.com/mitchellh/go-testing-interface v1.14.0 // indirect
 	github.com/onsi/ginkgo v1.10.1
 	github.com/onsi/gomega v1.7.0
 	github.com/packethost/packngo v0.0.0-20181217122008-b3b45f1b4979
@@ -26,9 +29,13 @@ require (
 	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/spf13/pflag v1.0.3
 	github.com/vmware/govmomi v0.22.2
+	github.com/yandex-cloud/go-genproto v0.0.0-20200330101522-37b51d1c4572
+	github.com/yandex-cloud/go-sdk v0.0.0-20200323080541-1b2fb4d2247e
 	golang.org/x/lint v0.0.0-20190313153728-d0100b6bd8b3
+	golang.org/x/net v0.0.0-20191126235420-ef20fe5d7933
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	google.golang.org/api v0.4.0
+	google.golang.org/grpc v1.28.0
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	k8s.io/api v0.0.0-20190918155943-95b840bb6a1f
 	k8s.io/apimachinery v0.0.0-20190913080033-27d36303b655

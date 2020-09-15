@@ -61,13 +61,19 @@ func (c *controller) existsMachineClassForSecret(name string) (bool, error) {
 		return false, err
 	}
 
+	yandexMachineClasses, err := c.findYandexMachineClassForSecret(name)
+	if err != nil {
+		return false, err
+	}
+
 	if len(openStackMachineClasses) == 0 &&
 		len(gcpMachineClasses) == 0 &&
 		len(azureMachineClasses) == 0 &&
 		len(packetMachineClasses) == 0 &&
 		len(alicloudMachineClasses) == 0 &&
 		len(awsMachineClasses) == 0 &&
-		len(vsphereMachineClasses) == 0 {
+		len(vsphereMachineClasses) == 0 &&
+		len(yandexMachineClasses) == 0 {
 		return false, nil
 	}
 
@@ -184,6 +190,22 @@ func (c *controller) findVsphereMachineClassForSecret(name string) ([]*v1alpha1.
 		return nil, err
 	}
 	var filtered []*v1alpha1.VsphereMachineClass
+	for _, machineClass := range machineClasses {
+		if machineClass.Spec.SecretRef.Name == name {
+			filtered = append(filtered, machineClass)
+		}
+	}
+	return filtered, nil
+}
+
+// findYandexClassForSecret returns the set of
+// YandexMachineClasses referring to the passed secret
+func (c *controller) findYandexMachineClassForSecret(name string) ([]*v1alpha1.YandexMachineClass, error) {
+	machineClasses, err := c.yandexMachineClassLister.List(labels.Everything())
+	if err != nil {
+		return nil, err
+	}
+	var filtered []*v1alpha1.YandexMachineClass
 	for _, machineClass := range machineClasses {
 		if machineClass.Spec.SecretRef.Name == name {
 			filtered = append(filtered, machineClass)

@@ -113,3 +113,11 @@ type VsphereMachineClassListerExpansion interface{}
 // VsphereMachineClassNamespaceListerExpansion allows custom methods to be added to
 // VsphereMachineClassNamespaceLister.
 type VsphereMachineClassNamespaceListerExpansion interface{}
+
+// YandexMachineClassListerExpansion allows custom methods to be added to
+// YandexMachineClassLister.
+type YandexMachineClassListerExpansion interface{}
+
+// YandexMachineClassNamespaceListerExpansion allows custom methods to be added to
+// YandexMachineClassNamespaceLister.
+type YandexMachineClassNamespaceListerExpansion interface{}

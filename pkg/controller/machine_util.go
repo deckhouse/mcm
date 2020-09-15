@@ -298,7 +298,28 @@ func (c *controller) validateMachineClass(classSpec *v1alpha1.ClassSpec) (interf
 			klog.V(2).Info("Secret reference not found")
 			return MachineClass, secretData, err
 		}
+	case "YandexMachineClass":
+		YandexMachineClass, err := c.yandexMachineClassLister.YandexMachineClasses(c.namespace).Get(classSpec.Name)
+		if err != nil {
+			klog.V(2).Infof("YandexMachineClass %q not found. Skipping. %v", classSpec.Name, err)
+			return MachineClass, secretData, err
+		}
+		MachineClass = YandexMachineClass
 
+		// Validate YandexMachineClass
+		internalYandexMachineClass := &machineapi.YandexMachineClass{}
+		err = c.internalExternalScheme.Convert(YandexMachineClass, internalYandexMachineClass, nil)
+		if err != nil {
+			klog.V(2).Info("Error in scheme conversion")
+			return MachineClass, secretData, err
+		}
+
+		// Get secretRef
+		secretData, err = c.getSecretData(YandexMachineClass.Name, YandexMachineClass.Spec.SecretRef)
+		if err != nil || secretData == nil {
+			klog.V(2).Info("Secret reference not found")
+			return MachineClass, secretData, err
+		}
 	default:
 		klog.V(2).Infof("ClassKind %q not found. Machine maybe be processed by external controller", classSpec.Kind)
 	}

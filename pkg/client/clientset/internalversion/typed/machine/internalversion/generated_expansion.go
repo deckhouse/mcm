@@ -41,3 +41,5 @@ type OpenStackMachineClassExpansion interface{}
 type PacketMachineClassExpansion interface{}
 
 type VsphereMachineClassExpansion interface{}
+
+type YandexMachineClassExpansion interface{}

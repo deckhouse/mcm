@@ -818,6 +818,76 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}); err != nil {
 		return err
 	}
+	if err := s.AddGeneratedConversionFunc((*YandexMachineClass)(nil), (*machine.YandexMachineClass)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1alpha1_YandexMachineClass_To_machine_YandexMachineClass(a.(*YandexMachineClass), b.(*machine.YandexMachineClass), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*machine.YandexMachineClass)(nil), (*YandexMachineClass)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_machine_YandexMachineClass_To_v1alpha1_YandexMachineClass(a.(*machine.YandexMachineClass), b.(*YandexMachineClass), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*YandexMachineClassList)(nil), (*machine.YandexMachineClassList)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1alpha1_YandexMachineClassList_To_machine_YandexMachineClassList(a.(*YandexMachineClassList), b.(*machine.YandexMachineClassList), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*machine.YandexMachineClassList)(nil), (*YandexMachineClassList)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_machine_YandexMachineClassList_To_v1alpha1_YandexMachineClassList(a.(*machine.YandexMachineClassList), b.(*YandexMachineClassList), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*YandexMachineClassSpec)(nil), (*machine.YandexMachineClassSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1alpha1_YandexMachineClassSpec_To_machine_YandexMachineClassSpec(a.(*YandexMachineClassSpec), b.(*machine.YandexMachineClassSpec), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*machine.YandexMachineClassSpec)(nil), (*YandexMachineClassSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_machine_YandexMachineClassSpec_To_v1alpha1_YandexMachineClassSpec(a.(*machine.YandexMachineClassSpec), b.(*YandexMachineClassSpec), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*YandexMachineClassSpecBootDiskSpec)(nil), (*machine.YandexMachineClassSpecBootDiskSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1alpha1_YandexMachineClassSpecBootDiskSpec_To_machine_YandexMachineClassSpecBootDiskSpec(a.(*YandexMachineClassSpecBootDiskSpec), b.(*machine.YandexMachineClassSpecBootDiskSpec), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*machine.YandexMachineClassSpecBootDiskSpec)(nil), (*YandexMachineClassSpecBootDiskSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_machine_YandexMachineClassSpecBootDiskSpec_To_v1alpha1_YandexMachineClassSpecBootDiskSpec(a.(*machine.YandexMachineClassSpecBootDiskSpec), b.(*YandexMachineClassSpecBootDiskSpec), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*YandexMachineClassSpecNetworkInterfaceSpecs)(nil), (*machine.YandexMachineClassSpecNetworkInterfaceSpecs)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1alpha1_YandexMachineClassSpecNetworkInterfaceSpecs_To_machine_YandexMachineClassSpecNetworkInterfaceSpecs(a.(*YandexMachineClassSpecNetworkInterfaceSpecs), b.(*machine.YandexMachineClassSpecNetworkInterfaceSpecs), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*machine.YandexMachineClassSpecNetworkInterfaceSpecs)(nil), (*YandexMachineClassSpecNetworkInterfaceSpecs)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_machine_YandexMachineClassSpecNetworkInterfaceSpecs_To_v1alpha1_YandexMachineClassSpecNetworkInterfaceSpecs(a.(*machine.YandexMachineClassSpecNetworkInterfaceSpecs), b.(*YandexMachineClassSpecNetworkInterfaceSpecs), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*YandexMachineClassSpecResourcesSpec)(nil), (*machine.YandexMachineClassSpecResourcesSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1alpha1_YandexMachineClassSpecResourcesSpec_To_machine_YandexMachineClassSpecResourcesSpec(a.(*YandexMachineClassSpecResourcesSpec), b.(*machine.YandexMachineClassSpecResourcesSpec), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*machine.YandexMachineClassSpecResourcesSpec)(nil), (*YandexMachineClassSpecResourcesSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_machine_YandexMachineClassSpecResourcesSpec_To_v1alpha1_YandexMachineClassSpecResourcesSpec(a.(*machine.YandexMachineClassSpecResourcesSpec), b.(*YandexMachineClassSpecResourcesSpec), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*YandexMachineClassSpecSchedulingPolicy)(nil), (*machine.YandexMachineClassSpecSchedulingPolicy)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_v1alpha1_YandexMachineClassSpecSchedulingPolicy_To_machine_YandexMachineClassSpecSchedulingPolicy(a.(*YandexMachineClassSpecSchedulingPolicy), b.(*machine.YandexMachineClassSpecSchedulingPolicy), scope)
+	}); err != nil {
+		return err
+	}
+	if err := s.AddGeneratedConversionFunc((*machine.YandexMachineClassSpecSchedulingPolicy)(nil), (*YandexMachineClassSpecSchedulingPolicy)(nil), func(a, b interface{}, scope conversion.Scope) error {
+		return Convert_machine_YandexMachineClassSpecSchedulingPolicy_To_v1alpha1_YandexMachineClassSpecSchedulingPolicy(a.(*machine.YandexMachineClassSpecSchedulingPolicy), b.(*YandexMachineClassSpecSchedulingPolicy), scope)
+	}); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -3093,4 +3163,198 @@ func autoConvert_machine_VsphereMachineClassSpecRuntimeOptions_To_v1alpha1_Vsphe
 // Convert_machine_VsphereMachineClassSpecRuntimeOptions_To_v1alpha1_VsphereMachineClassSpecRuntimeOptions is an autogenerated conversion function.
 func Convert_machine_VsphereMachineClassSpecRuntimeOptions_To_v1alpha1_VsphereMachineClassSpecRuntimeOptions(in *machine.VsphereMachineClassSpecRuntimeOptions, out *VsphereMachineClassSpecRuntimeOptions, s conversion.Scope) error {
 	return autoConvert_machine_VsphereMachineClassSpecRuntimeOptions_To_v1alpha1_VsphereMachineClassSpecRuntimeOptions(in, out, s)
+}
+
+func autoConvert_v1alpha1_YandexMachineClass_To_machine_YandexMachineClass(in *YandexMachineClass, out *machine.YandexMachineClass, s conversion.Scope) error {
+	out.ObjectMeta = in.ObjectMeta
+	if err := Convert_v1alpha1_YandexMachineClassSpec_To_machine_YandexMachineClassSpec(&in.Spec, &out.Spec, s); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Convert_v1alpha1_YandexMachineClass_To_machine_YandexMachineClass is an autogenerated conversion function.
+func Convert_v1alpha1_YandexMachineClass_To_machine_YandexMachineClass(in *YandexMachineClass, out *machine.YandexMachineClass, s conversion.Scope) error {
+	return autoConvert_v1alpha1_YandexMachineClass_To_machine_YandexMachineClass(in, out, s)
+}
+
+func autoConvert_machine_YandexMachineClass_To_v1alpha1_YandexMachineClass(in *machine.YandexMachineClass, out *YandexMachineClass, s conversion.Scope) error {
+	out.ObjectMeta = in.ObjectMeta
+	if err := Convert_machine_YandexMachineClassSpec_To_v1alpha1_YandexMachineClassSpec(&in.Spec, &out.Spec, s); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Convert_machine_YandexMachineClass_To_v1alpha1_YandexMachineClass is an autogenerated conversion function.
+func Convert_machine_YandexMachineClass_To_v1alpha1_YandexMachineClass(in *machine.YandexMachineClass, out *YandexMachineClass, s conversion.Scope) error {
+	return autoConvert_machine_YandexMachineClass_To_v1alpha1_YandexMachineClass(in, out, s)
+}
+
+func autoConvert_v1alpha1_YandexMachineClassList_To_machine_YandexMachineClassList(in *YandexMachineClassList, out *machine.YandexMachineClassList, s conversion.Scope) error {
+	out.ListMeta = in.ListMeta
+	out.Items = *(*[]machine.YandexMachineClass)(unsafe.Pointer(&in.Items))
+	return nil
+}
+
+// Convert_v1alpha1_YandexMachineClassList_To_machine_YandexMachineClassList is an autogenerated conversion function.
+func Convert_v1alpha1_YandexMachineClassList_To_machine_YandexMachineClassList(in *YandexMachineClassList, out *machine.YandexMachineClassList, s conversion.Scope) error {
+	return autoConvert_v1alpha1_YandexMachineClassList_To_machine_YandexMachineClassList(in, out, s)
+}
+
+func autoConvert_machine_YandexMachineClassList_To_v1alpha1_YandexMachineClassList(in *machine.YandexMachineClassList, out *YandexMachineClassList, s conversion.Scope) error {
+	out.ListMeta = in.ListMeta
+	out.Items = *(*[]YandexMachineClass)(unsafe.Pointer(&in.Items))
+	return nil
+}
+
+// Convert_machine_YandexMachineClassList_To_v1alpha1_YandexMachineClassList is an autogenerated conversion function.
+func Convert_machine_YandexMachineClassList_To_v1alpha1_YandexMachineClassList(in *machine.YandexMachineClassList, out *YandexMachineClassList, s conversion.Scope) error {
+	return autoConvert_machine_YandexMachineClassList_To_v1alpha1_YandexMachineClassList(in, out, s)
+}
+
+func autoConvert_v1alpha1_YandexMachineClassSpec_To_machine_YandexMachineClassSpec(in *YandexMachineClassSpec, out *machine.YandexMachineClassSpec, s conversion.Scope) error {
+	out.Labels = *(*map[string]string)(unsafe.Pointer(&in.Labels))
+	out.Metadata = *(*map[string]string)(unsafe.Pointer(&in.Metadata))
+	out.RegionID = in.RegionID
+	out.ZoneID = in.ZoneID
+	out.PlatformID = in.PlatformID
+	if err := Convert_v1alpha1_YandexMachineClassSpecResourcesSpec_To_machine_YandexMachineClassSpecResourcesSpec(&in.ResourcesSpec, &out.ResourcesSpec, s); err != nil {
+		return err
+	}
+	if err := Convert_v1alpha1_YandexMachineClassSpecBootDiskSpec_To_machine_YandexMachineClassSpecBootDiskSpec(&in.BootDiskSpec, &out.BootDiskSpec, s); err != nil {
+		return err
+	}
+	out.NetworkInterfaceSpecs = *(*[]machine.YandexMachineClassSpecNetworkInterfaceSpecs)(unsafe.Pointer(&in.NetworkInterfaceSpecs))
+	if err := Convert_v1alpha1_YandexMachineClassSpecSchedulingPolicy_To_machine_YandexMachineClassSpecSchedulingPolicy(&in.SchedulingPolicy, &out.SchedulingPolicy, s); err != nil {
+		return err
+	}
+	out.SecretRef = (*v1.SecretReference)(unsafe.Pointer(in.SecretRef))
+	out.CredentialsSecretRef = (*v1.SecretReference)(unsafe.Pointer(in.CredentialsSecretRef))
+	return nil
+}
+
+// Convert_v1alpha1_YandexMachineClassSpec_To_machine_YandexMachineClassSpec is an autogenerated conversion function.
+func Convert_v1alpha1_YandexMachineClassSpec_To_machine_YandexMachineClassSpec(in *YandexMachineClassSpec, out *machine.YandexMachineClassSpec, s conversion.Scope) error {
+	return autoConvert_v1alpha1_YandexMachineClassSpec_To_machine_YandexMachineClassSpec(in, out, s)
+}
+
+func autoConvert_machine_YandexMachineClassSpec_To_v1alpha1_YandexMachineClassSpec(in *machine.YandexMachineClassSpec, out *YandexMachineClassSpec, s conversion.Scope) error {
+	out.Labels = *(*map[string]string)(unsafe.Pointer(&in.Labels))
+	out.Metadata = *(*map[string]string)(unsafe.Pointer(&in.Metadata))
+	out.RegionID = in.RegionID
+	out.ZoneID = in.ZoneID
+	out.PlatformID = in.PlatformID
+	if err := Convert_machine_YandexMachineClassSpecResourcesSpec_To_v1alpha1_YandexMachineClassSpecResourcesSpec(&in.ResourcesSpec, &out.ResourcesSpec, s); err != nil {
+		return err
+	}
+	if err := Convert_machine_YandexMachineClassSpecBootDiskSpec_To_v1alpha1_YandexMachineClassSpecBootDiskSpec(&in.BootDiskSpec, &out.BootDiskSpec, s); err != nil {
+		return err
+	}
+	out.NetworkInterfaceSpecs = *(*[]YandexMachineClassSpecNetworkInterfaceSpecs)(unsafe.Pointer(&in.NetworkInterfaceSpecs))
+	if err := Convert_machine_YandexMachineClassSpecSchedulingPolicy_To_v1alpha1_YandexMachineClassSpecSchedulingPolicy(&in.SchedulingPolicy, &out.SchedulingPolicy, s); err != nil {
+		return err
+	}
+	out.SecretRef = (*v1.SecretReference)(unsafe.Pointer(in.SecretRef))
+	out.CredentialsSecretRef = (*v1.SecretReference)(unsafe.Pointer(in.CredentialsSecretRef))
+	return nil
+}
+
+// Convert_machine_YandexMachineClassSpec_To_v1alpha1_YandexMachineClassSpec is an autogenerated conversion function.
+func Convert_machine_YandexMachineClassSpec_To_v1alpha1_YandexMachineClassSpec(in *machine.YandexMachineClassSpec, out *YandexMachineClassSpec, s conversion.Scope) error {
+	return autoConvert_machine_YandexMachineClassSpec_To_v1alpha1_YandexMachineClassSpec(in, out, s)
+}
+
+func autoConvert_v1alpha1_YandexMachineClassSpecBootDiskSpec_To_machine_YandexMachineClassSpecBootDiskSpec(in *YandexMachineClassSpecBootDiskSpec, out *machine.YandexMachineClassSpecBootDiskSpec, s conversion.Scope) error {
+	out.AutoDelete = in.AutoDelete
+	out.TypeID = in.TypeID
+	out.Size = in.Size
+	out.ImageID = in.ImageID
+	return nil
+}
+
+// Convert_v1alpha1_YandexMachineClassSpecBootDiskSpec_To_machine_YandexMachineClassSpecBootDiskSpec is an autogenerated conversion function.
+func Convert_v1alpha1_YandexMachineClassSpecBootDiskSpec_To_machine_YandexMachineClassSpecBootDiskSpec(in *YandexMachineClassSpecBootDiskSpec, out *machine.YandexMachineClassSpecBootDiskSpec, s conversion.Scope) error {
+	return autoConvert_v1alpha1_YandexMachineClassSpecBootDiskSpec_To_machine_YandexMachineClassSpecBootDiskSpec(in, out, s)
+}
+
+func autoConvert_machine_YandexMachineClassSpecBootDiskSpec_To_v1alpha1_YandexMachineClassSpecBootDiskSpec(in *machine.YandexMachineClassSpecBootDiskSpec, out *YandexMachineClassSpecBootDiskSpec, s conversion.Scope) error {
+	out.AutoDelete = in.AutoDelete
+	out.TypeID = in.TypeID
+	out.Size = in.Size
+	out.ImageID = in.ImageID
+	return nil
+}
+
+// Convert_machine_YandexMachineClassSpecBootDiskSpec_To_v1alpha1_YandexMachineClassSpecBootDiskSpec is an autogenerated conversion function.
+func Convert_machine_YandexMachineClassSpecBootDiskSpec_To_v1alpha1_YandexMachineClassSpecBootDiskSpec(in *machine.YandexMachineClassSpecBootDiskSpec, out *YandexMachineClassSpecBootDiskSpec, s conversion.Scope) error {
+	return autoConvert_machine_YandexMachineClassSpecBootDiskSpec_To_v1alpha1_YandexMachineClassSpecBootDiskSpec(in, out, s)
+}
+
+func autoConvert_v1alpha1_YandexMachineClassSpecNetworkInterfaceSpecs_To_machine_YandexMachineClassSpecNetworkInterfaceSpecs(in *YandexMachineClassSpecNetworkInterfaceSpecs, out *machine.YandexMachineClassSpecNetworkInterfaceSpecs, s conversion.Scope) error {
+	out.SubnetID = in.SubnetID
+	out.AssignPublicIPAddress = in.AssignPublicIPAddress
+	return nil
+}
+
+// Convert_v1alpha1_YandexMachineClassSpecNetworkInterfaceSpecs_To_machine_YandexMachineClassSpecNetworkInterfaceSpecs is an autogenerated conversion function.
+func Convert_v1alpha1_YandexMachineClassSpecNetworkInterfaceSpecs_To_machine_YandexMachineClassSpecNetworkInterfaceSpecs(in *YandexMachineClassSpecNetworkInterfaceSpecs, out *machine.YandexMachineClassSpecNetworkInterfaceSpecs, s conversion.Scope) error {
+	return autoConvert_v1alpha1_YandexMachineClassSpecNetworkInterfaceSpecs_To_machine_YandexMachineClassSpecNetworkInterfaceSpecs(in, out, s)
+}
+
+func autoConvert_machine_YandexMachineClassSpecNetworkInterfaceSpecs_To_v1alpha1_YandexMachineClassSpecNetworkInterfaceSpecs(in *machine.YandexMachineClassSpecNetworkInterfaceSpecs, out *YandexMachineClassSpecNetworkInterfaceSpecs, s conversion.Scope) error {
+	out.SubnetID = in.SubnetID
+	out.AssignPublicIPAddress = in.AssignPublicIPAddress
+	return nil
+}
+
+// Convert_machine_YandexMachineClassSpecNetworkInterfaceSpecs_To_v1alpha1_YandexMachineClassSpecNetworkInterfaceSpecs is an autogenerated conversion function.
+func Convert_machine_YandexMachineClassSpecNetworkInterfaceSpecs_To_v1alpha1_YandexMachineClassSpecNetworkInterfaceSpecs(in *machine.YandexMachineClassSpecNetworkInterfaceSpecs, out *YandexMachineClassSpecNetworkInterfaceSpecs, s conversion.Scope) error {
+	return autoConvert_machine_YandexMachineClassSpecNetworkInterfaceSpecs_To_v1alpha1_YandexMachineClassSpecNetworkInterfaceSpecs(in, out, s)
+}
+
+func autoConvert_v1alpha1_YandexMachineClassSpecResourcesSpec_To_machine_YandexMachineClassSpecResourcesSpec(in *YandexMachineClassSpecResourcesSpec, out *machine.YandexMachineClassSpecResourcesSpec, s conversion.Scope) error {
+	out.Cores = in.Cores
+	out.CoreFraction = in.CoreFraction
+	out.Memory = in.Memory
+	out.GPUs = in.GPUs
+	return nil
+}
+
+// Convert_v1alpha1_YandexMachineClassSpecResourcesSpec_To_machine_YandexMachineClassSpecResourcesSpec is an autogenerated conversion function.
+func Convert_v1alpha1_YandexMachineClassSpecResourcesSpec_To_machine_YandexMachineClassSpecResourcesSpec(in *YandexMachineClassSpecResourcesSpec, out *machine.YandexMachineClassSpecResourcesSpec, s conversion.Scope) error {
+	return autoConvert_v1alpha1_YandexMachineClassSpecResourcesSpec_To_machine_YandexMachineClassSpecResourcesSpec(in, out, s)
+}
+
+func autoConvert_machine_YandexMachineClassSpecResourcesSpec_To_v1alpha1_YandexMachineClassSpecResourcesSpec(in *machine.YandexMachineClassSpecResourcesSpec, out *YandexMachineClassSpecResourcesSpec, s conversion.Scope) error {
+	out.Cores = in.Cores
+	out.CoreFraction = in.CoreFraction
+	out.Memory = in.Memory
+	out.GPUs = in.GPUs
+	return nil
+}
+
+// Convert_machine_YandexMachineClassSpecResourcesSpec_To_v1alpha1_YandexMachineClassSpecResourcesSpec is an autogenerated conversion function.
+func Convert_machine_YandexMachineClassSpecResourcesSpec_To_v1alpha1_YandexMachineClassSpecResourcesSpec(in *machine.YandexMachineClassSpecResourcesSpec, out *YandexMachineClassSpecResourcesSpec, s conversion.Scope) error {
+	return autoConvert_machine_YandexMachineClassSpecResourcesSpec_To_v1alpha1_YandexMachineClassSpecResourcesSpec(in, out, s)
+}
+
+func autoConvert_v1alpha1_YandexMachineClassSpecSchedulingPolicy_To_machine_YandexMachineClassSpecSchedulingPolicy(in *YandexMachineClassSpecSchedulingPolicy, out *machine.YandexMachineClassSpecSchedulingPolicy, s conversion.Scope) error {
+	out.Preemptible = in.Preemptible
+	return nil
+}
+
+// Convert_v1alpha1_YandexMachineClassSpecSchedulingPolicy_To_machine_YandexMachineClassSpecSchedulingPolicy is an autogenerated conversion function.
+func Convert_v1alpha1_YandexMachineClassSpecSchedulingPolicy_To_machine_YandexMachineClassSpecSchedulingPolicy(in *YandexMachineClassSpecSchedulingPolicy, out *machine.YandexMachineClassSpecSchedulingPolicy, s conversion.Scope) error {
+	return autoConvert_v1alpha1_YandexMachineClassSpecSchedulingPolicy_To_machine_YandexMachineClassSpecSchedulingPolicy(in, out, s)
+}
+
+func autoConvert_machine_YandexMachineClassSpecSchedulingPolicy_To_v1alpha1_YandexMachineClassSpecSchedulingPolicy(in *machine.YandexMachineClassSpecSchedulingPolicy, out *YandexMachineClassSpecSchedulingPolicy, s conversion.Scope) error {
+	out.Preemptible = in.Preemptible
+	return nil
+}
+
+// Convert_machine_YandexMachineClassSpecSchedulingPolicy_To_v1alpha1_YandexMachineClassSpecSchedulingPolicy is an autogenerated conversion function.
+func Convert_machine_YandexMachineClassSpecSchedulingPolicy_To_v1alpha1_YandexMachineClassSpecSchedulingPolicy(in *machine.YandexMachineClassSpecSchedulingPolicy, out *YandexMachineClassSpecSchedulingPolicy, s conversion.Scope) error {
+	return autoConvert_machine_YandexMachineClassSpecSchedulingPolicy_To_v1alpha1_YandexMachineClassSpecSchedulingPolicy(in, out, s)
 }

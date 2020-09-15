@@ -1258,6 +1258,76 @@ type VsphereMachineClassSpecResourceAllocationInfo struct {
 	MemoryReservation *int64
 }
 
+/********************** YandexMachineClass APIs ***************/
+
+// +genclient
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
+// YandexMachineClass TODO
+type YandexMachineClass struct {
+	// +optional
+	metav1.ObjectMeta
+
+	// +optional
+	metav1.TypeMeta
+
+	// +optional
+	Spec YandexMachineClassSpec
+}
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
+// YandexMachineClassList is a collection of PacketMachineClasses.
+type YandexMachineClassList struct {
+	// +optional
+	metav1.TypeMeta
+
+	// +optional
+	metav1.ListMeta
+
+	// +optional
+	Items []YandexMachineClass
+}
+
+type YandexMachineClassSpec struct {
+	Labels     map[string]string
+	Metadata   map[string]string
+	RegionID   string
+	ZoneID     string
+	PlatformID string
+
+	ResourcesSpec         YandexMachineClassSpecResourcesSpec
+	BootDiskSpec          YandexMachineClassSpecBootDiskSpec
+	NetworkInterfaceSpecs []YandexMachineClassSpecNetworkInterfaceSpecs
+	SchedulingPolicy      YandexMachineClassSpecSchedulingPolicy
+
+	SecretRef            *corev1.SecretReference
+	CredentialsSecretRef *corev1.SecretReference
+}
+
+type YandexMachineClassSpecResourcesSpec struct {
+	Cores        int64
+	CoreFraction int64
+	Memory       int64
+	GPUs         int64
+}
+
+type YandexMachineClassSpecBootDiskSpec struct {
+	AutoDelete bool
+	TypeID     string
+	Size       int64
+	ImageID    string
+}
+
+type YandexMachineClassSpecNetworkInterfaceSpecs struct {
+	SubnetID              string
+	AssignPublicIPAddress bool
+}
+
+type YandexMachineClassSpecSchedulingPolicy struct {
+	Preemptible bool
+}
+
 // +genclient
 // +genclient:noStatus
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

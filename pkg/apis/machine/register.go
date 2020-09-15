@@ -70,6 +70,9 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 		&VsphereMachineClass{},
 		&VsphereMachineClassList{},
 
+		&YandexMachineClass{},
+		&YandexMachineClassList{},
+
 		&MachineClass{},
 		&MachineClassList{},
 

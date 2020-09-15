@@ -85,7 +85,7 @@ func (c *controller) enqueueMachine(obj interface{}) {
 
 	machine := obj.(*v1alpha1.Machine)
 	switch machine.Spec.Class.Kind {
-	case AlicloudMachineClassKind, AWSMachineClassKind, AzureMachineClassKind, GCPMachineClassKind, OpenStackMachineClassKind, PacketMachineClassKind, VsphereMachineClassKind:
+	case AlicloudMachineClassKind, AWSMachineClassKind, AzureMachineClassKind, GCPMachineClassKind, OpenStackMachineClassKind, PacketMachineClassKind, VsphereMachineClassKind, YandexMachineClassKind:
 		// Checking if machineClass is to be processed by MCM, and then only enqueue the machine object
 		klog.V(4).Infof("Adding machine object to the queue %q", key)
 		c.machineQueue.Add(key)

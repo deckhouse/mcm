@@ -19,7 +19,6 @@ package driver
 
 import (
 	"fmt"
-
 	"strings"
 
 	"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
@@ -101,6 +100,15 @@ func NewDriver(machineID string, secretData map[string][]byte, classKind string,
 
 	case "VsphereMachineClass":
 		return NewVsphereDriver(machineClass.(*v1alpha1.VsphereMachineClass),
+			secretData,
+			string(secretData["userData"]),
+			machineID,
+			machineName,
+		)
+
+	case "YandexMachineClass":
+		return NewYandexDriver(
+			machineClass.(*v1alpha1.YandexMachineClass),
 			secretData,
 			string(secretData["userData"]),
 			machineID,

@@ -76,6 +76,7 @@ func NewController(
 	alicloudMachineClassInformer machineinformers.AlicloudMachineClassInformer,
 	packetMachineClassInformer machineinformers.PacketMachineClassInformer,
 	vsphereMachineClassInformer machineinformers.VsphereMachineClassInformer,
+	yandexMachineClassInformer machineinformers.YandexMachineClassInformer,
 	machineInformer machineinformers.MachineInformer,
 	machineSetInformer machineinformers.MachineSetInformer,
 	machineDeploymentInformer machineinformers.MachineDeploymentInformer,
@@ -102,6 +103,7 @@ func NewController(
 		alicloudMachineClassQueue:                  workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "alicloudmachineclass"),
 		packetMachineClassQueue:                    workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "packetmachineclass"),
 		vsphereMachineClassQueue:                   workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "vspheremachineclass"),
+		yandexMachineClassQueue:                    workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "yandexmachineclass"),
 		machineQueue:                               workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "machine"),
 		machineSetQueue:                            workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "machineset"),
 		machineDeploymentQueue:                     workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "machinedeployment"),
@@ -150,6 +152,7 @@ func NewController(
 	controller.alicloudMachineClassLister = alicloudMachineClassInformer.Lister()
 	controller.packetMachineClassLister = packetMachineClassInformer.Lister()
 	controller.vsphereMachineClassLister = vsphereMachineClassInformer.Lister()
+	controller.yandexMachineClassLister = yandexMachineClassInformer.Lister()
 	controller.nodeLister = nodeInformer.Lister()
 	controller.machineLister = machineInformer.Lister()
 	controller.machineSetLister = machineSetInformer.Lister()
@@ -164,6 +167,7 @@ func NewController(
 	controller.alicloudMachineClassSynced = alicloudMachineClassInformer.Informer().HasSynced
 	controller.packetMachineClassSynced = packetMachineClassInformer.Informer().HasSynced
 	controller.vsphereMachineClassSynced = vsphereMachineClassInformer.Informer().HasSynced
+	controller.yandexMachineClassSynced = yandexMachineClassInformer.Informer().HasSynced
 	controller.nodeSynced = nodeInformer.Informer().HasSynced
 	controller.machineSynced = machineInformer.Informer().HasSynced
 	controller.machineSetSynced = machineSetInformer.Informer().HasSynced
@@ -215,6 +219,12 @@ func NewController(
 		AddFunc:    controller.vsphereMachineClassToSecretAdd,
 		UpdateFunc: controller.vsphereMachineClassToSecretUpdate,
 		DeleteFunc: controller.vsphereMachineClassToSecretDelete,
+	})
+
+	yandexMachineClassInformer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc:    controller.yandexMachineClassToSecretAdd,
+		UpdateFunc: controller.yandexMachineClassToSecretUpdate,
+		DeleteFunc: controller.yandexMachineClassToSecretDelete,
 	})
 
 	// Openstack Controller Informers
@@ -361,6 +371,24 @@ func NewController(
 		UpdateFunc: controller.vsphereMachineClassUpdate,
 	})
 
+	// Yandex Controller Informers
+	machineDeploymentInformer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
+		DeleteFunc: controller.machineDeploymentToYandexMachineClassDelete,
+	})
+
+	machineSetInformer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
+		DeleteFunc: controller.machineSetToYandexMachineClassDelete,
+	})
+
+	machineInformer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
+		DeleteFunc: controller.machineToYandexMachineClassDelete,
+	})
+
+	yandexMachineClassInformer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc:    controller.yandexMachineClassAdd,
+		UpdateFunc: controller.yandexMachineClassUpdate,
+	})
+
 	/* Node Controller Informers - Don't remove this, saved for future use case.
 	nodeInformer.Informer().AddEventHandler(
 		cache.FilteringResourceEventHandler{
@@ -477,6 +505,7 @@ type controller struct {
 	alicloudMachineClassLister  machinelisters.AlicloudMachineClassLister
 	packetMachineClassLister    machinelisters.PacketMachineClassLister
 	vsphereMachineClassLister   machinelisters.VsphereMachineClassLister
+	yandexMachineClassLister    machinelisters.YandexMachineClassLister
 	machineLister               machinelisters.MachineLister
 	machineSetLister            machinelisters.MachineSetLister
 	machineDeploymentLister     machinelisters.MachineDeploymentLister
@@ -490,6 +519,7 @@ type controller struct {
 	alicloudMachineClassQueue      workqueue.RateLimitingInterface
 	packetMachineClassQueue        workqueue.RateLimitingInterface
 	vsphereMachineClassQueue       workqueue.RateLimitingInterface
+	yandexMachineClassQueue        workqueue.RateLimitingInterface
 	machineQueue                   workqueue.RateLimitingInterface
 	machineSetQueue                workqueue.RateLimitingInterface
 	machineDeploymentQueue         workqueue.RateLimitingInterface
@@ -506,6 +536,7 @@ type controller struct {
 	alicloudMachineClassSynced  cache.InformerSynced
 	packetMachineClassSynced    cache.InformerSynced
 	vsphereMachineClassSynced   cache.InformerSynced
+	yandexMachineClassSynced    cache.InformerSynced
 	machineSynced               cache.InformerSynced
 	machineSetSynced            cache.InformerSynced
 	machineDeploymentSynced     cache.InformerSynced
@@ -527,6 +558,7 @@ func (c *controller) Run(workers int, stopCh <-chan struct{}) {
 	defer c.alicloudMachineClassQueue.ShutDown()
 	defer c.packetMachineClassQueue.ShutDown()
 	defer c.vsphereMachineClassQueue.ShutDown()
+	defer c.yandexMachineClassQueue.ShutDown()
 	defer c.machineQueue.ShutDown()
 	defer c.machineSetQueue.ShutDown()
 	defer c.machineDeploymentQueue.ShutDown()
@@ -534,7 +566,7 @@ func (c *controller) Run(workers int, stopCh <-chan struct{}) {
 	defer c.machineSafetyOvershootingQueue.ShutDown()
 	defer c.machineSafetyAPIServerQueue.ShutDown()
 
-	if !cache.WaitForCacheSync(stopCh, c.secretSynced, c.nodeSynced, c.openStackMachineClassSynced, c.awsMachineClassSynced, c.azureMachineClassSynced, c.gcpMachineClassSynced, c.alicloudMachineClassSynced, c.packetMachineClassSynced, c.vsphereMachineClassSynced, c.machineSynced, c.machineSetSynced, c.machineDeploymentSynced) {
+	if !cache.WaitForCacheSync(stopCh, c.secretSynced, c.nodeSynced, c.openStackMachineClassSynced, c.awsMachineClassSynced, c.azureMachineClassSynced, c.gcpMachineClassSynced, c.alicloudMachineClassSynced, c.packetMachineClassSynced, c.vsphereMachineClassSynced, c.yandexMachineClassSynced, c.machineSynced, c.machineSetSynced, c.machineDeploymentSynced) {
 		runtimeutil.HandleError(fmt.Errorf("Timed out waiting for caches to sync"))
 		return
 	}
@@ -555,6 +587,7 @@ func (c *controller) Run(workers int, stopCh <-chan struct{}) {
 		createWorker(c.alicloudMachineClassQueue, "ClusterAlicloudMachineClass", maxRetries, true, c.reconcileClusterAlicloudMachineClassKey, stopCh, &waitGroup)
 		createWorker(c.packetMachineClassQueue, "ClusterPacketMachineClass", maxRetries, true, c.reconcileClusterPacketMachineClassKey, stopCh, &waitGroup)
 		createWorker(c.vsphereMachineClassQueue, "ClusterVsphereMachineClass", maxRetries, true, c.reconcileClusterVsphereMachineClassKey, stopCh, &waitGroup)
+		createWorker(c.yandexMachineClassQueue, "ClusterYandexMachineClass", maxRetries, true, c.reconcileClusterYandexMachineClassKey, stopCh, &waitGroup)
 		createWorker(c.secretQueue, "ClusterSecret", maxRetries, true, c.reconcileClusterSecretKey, stopCh, &waitGroup)
 		createWorker(c.nodeQueue, "ClusterNode", maxRetries, true, c.reconcileClusterNodeKey, stopCh, &waitGroup)
 		createWorker(c.machineQueue, "ClusterMachine", maxRetries, true, c.reconcileClusterMachineKey, stopCh, &waitGroup)

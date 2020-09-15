@@ -37,6 +37,7 @@ type MachineInterface interface {
 	OpenStackMachineClassesGetter
 	PacketMachineClassesGetter
 	VsphereMachineClassesGetter
+	YandexMachineClassesGetter
 }
 
 // MachineClient is used to interact with features provided by the machine.sapcloud.io group.
@@ -90,6 +91,10 @@ func (c *MachineClient) PacketMachineClasses(namespace string) PacketMachineClas
 
 func (c *MachineClient) VsphereMachineClasses(namespace string) VsphereMachineClassInterface {
 	return newVsphereMachineClasses(c, namespace)
+}
+
+func (c *MachineClient) YandexMachineClasses(namespace string) YandexMachineClassInterface {
+	return newYandexMachineClasses(c, namespace)
 }
 
 // NewForConfig creates a new MachineClient for the given config.

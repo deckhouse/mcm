@@ -76,6 +76,10 @@ func (c *FakeMachine) VsphereMachineClasses(namespace string) internalversion.Vs
 	return &FakeVsphereMachineClasses{c, namespace}
 }
 
+func (c *FakeMachine) YandexMachineClasses(namespace string) internalversion.YandexMachineClassInterface {
+	return &FakeYandexMachineClasses{c, namespace}
+}
+
 // RESTClient returns a RESTClient that is used to communicate
 // with API server by this client implementation.
 func (c *FakeMachine) RESTClient() rest.Interface {
