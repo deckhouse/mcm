@@ -22,13 +22,6 @@ import (
 	"net/http"
 	"time"
 
-	machineapi "github.com/gardener/machine-controller-manager/pkg/apis/machine"
-	"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
-	machinev1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
-	"github.com/gardener/machine-controller-manager/pkg/apis/machine/validation"
-	fakemachineapi "github.com/gardener/machine-controller-manager/pkg/client/clientset/versioned/typed/machine/v1alpha1/fake"
-	"github.com/gardener/machine-controller-manager/pkg/driver"
-	customfake "github.com/gardener/machine-controller-manager/pkg/fakeclient"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
@@ -40,6 +33,14 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	k8stesting "k8s.io/client-go/testing"
+
+	machineapi "github.com/gardener/machine-controller-manager/pkg/apis/machine"
+	"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
+	machinev1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
+	"github.com/gardener/machine-controller-manager/pkg/apis/machine/validation"
+	fakemachineapi "github.com/gardener/machine-controller-manager/pkg/client/clientset/versioned/typed/machine/v1alpha1/fake"
+	"github.com/gardener/machine-controller-manager/pkg/driver"
+	customfake "github.com/gardener/machine-controller-manager/pkg/fakeclient"
 )
 
 const testNamespace = "test"
@@ -969,6 +970,67 @@ var _ = Describe("machine", func() {
 					}, &machinev1.MachineStatus{
 						Node: "",
 						//TODO conditions
+					}, nil, nil, nil),
+					err: false,
+				},
+			}),
+			Entry("If Machine is already Creating, move machine to Failed state", &data{
+				setup: setup{
+					secrets: []*corev1.Secret{
+						{
+							ObjectMeta: *newObjectMeta(objMeta, 0),
+						},
+					},
+					aws: []*machinev1.AWSMachineClass{
+						{
+							ObjectMeta: *newObjectMeta(objMeta, 0),
+							Spec: machinev1.AWSMachineClassSpec{
+								SecretRef: newSecretReference(objMeta, 0),
+							},
+						},
+					},
+					machines: newMachines(1,
+						&machinev1.MachineTemplateSpec{
+							ObjectMeta: *newObjectMeta(objMeta, 0),
+							Spec: machinev1.MachineSpec{
+								Class: machinev1.ClassSpec{
+									Kind: "AWSMachineClass",
+									Name: "machine-0",
+								},
+							},
+						},
+						&machinev1.MachineStatus{CurrentStatus: machinev1.CurrentStatus{Phase: machinev1.MachineCreating}},
+						nil, nil, nil),
+					fakeResourceActions: &customfake.ResourceActions{
+						Machine: customfake.Actions{
+							Get: apierrors.NewGenericServerResponse(
+								http.StatusBadRequest,
+								"dummy method",
+								schema.GroupResource{},
+								"dummy name",
+								"Failed to GET machine",
+								30,
+								true,
+							),
+						},
+					},
+				},
+				action: action{
+					machine:      "machine-0",
+					fakeNodeName: "",
+					fakeError:    nil,
+				},
+				expect: expect{
+					machine: newMachine(&machinev1.MachineTemplateSpec{
+						ObjectMeta: *newObjectMeta(objMeta, 0),
+						Spec: machinev1.MachineSpec{
+							Class: machinev1.ClassSpec{
+								Kind: "AWSMachineClass",
+								Name: "machine-0",
+							},
+						},
+					}, &machinev1.MachineStatus{
+						CurrentStatus: machinev1.CurrentStatus{Phase: machinev1.MachineFailed},
 					}, nil, nil, nil),
 					err: false,
 				},

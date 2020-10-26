@@ -20,11 +20,12 @@ package controller
 import (
 	"strconv"
 
-	v1alpha1 "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
-	"github.com/gardener/machine-controller-manager/pkg/metrics"
 	"github.com/prometheus/client_golang/prometheus"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
+
+	"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
+	"github.com/gardener/machine-controller-manager/pkg/metrics"
 )
 
 // Describe is method required to implement the prometheus.Collect interface.
@@ -293,6 +294,8 @@ func (c *controller) CollectMachineMetrics(ch chan<- prometheus.Metric) {
 			phase = 3
 		case v1alpha1.MachineCrashLoopBackOff:
 			phase = 4
+		case v1alpha1.MachineCreating:
+			phase = 5
 		}
 		metrics.MachineCSPhase.With(prometheus.Labels{
 			"name":      mMeta.Name,

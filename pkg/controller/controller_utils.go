@@ -32,11 +32,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
-	machineapi "github.com/gardener/machine-controller-manager/pkg/client/clientset/versioned/typed/machine/v1alpha1"
-	fakemachineapi "github.com/gardener/machine-controller-manager/pkg/client/clientset/versioned/typed/machine/v1alpha1/fake"
-	annotationsutils "github.com/gardener/machine-controller-manager/pkg/util/annotations"
-	hashutil "github.com/gardener/machine-controller-manager/pkg/util/hash"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -54,6 +49,12 @@ import (
 	"k8s.io/client-go/tools/record"
 	clientretry "k8s.io/client-go/util/retry"
 	"k8s.io/klog"
+
+	"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
+	machineapi "github.com/gardener/machine-controller-manager/pkg/client/clientset/versioned/typed/machine/v1alpha1"
+	fakemachineapi "github.com/gardener/machine-controller-manager/pkg/client/clientset/versioned/typed/machine/v1alpha1/fake"
+	annotationsutils "github.com/gardener/machine-controller-manager/pkg/util/annotations"
+	hashutil "github.com/gardener/machine-controller-manager/pkg/util/hash"
 )
 
 const (
@@ -769,11 +770,12 @@ func (s ActiveMachines) Less(i, j int) bool {
 	m := map[v1alpha1.MachinePhase]int{
 		v1alpha1.MachineTerminating:      0,
 		v1alpha1.MachineFailed:           1,
-		v1alpha1.MachineCrashLoopBackOff: 2,
-		v1alpha1.MachineUnknown:          3,
-		v1alpha1.MachinePending:          4,
-		v1alpha1.MachineAvailable:        5,
-		v1alpha1.MachineRunning:          6,
+		v1alpha1.MachineCreating:         2,
+		v1alpha1.MachineCrashLoopBackOff: 3,
+		v1alpha1.MachineUnknown:          4,
+		v1alpha1.MachinePending:          5,
+		v1alpha1.MachineAvailable:        6,
+		v1alpha1.MachineRunning:          7,
 	}
 
 	// Case-1: Initially we try to prioritize machine deletion based on

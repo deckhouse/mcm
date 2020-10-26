@@ -623,7 +623,7 @@ func (c *controller) checkMachineClass(
 
 			// If machine exists and machine object is still been processed by the machine controller
 			if err == nil &&
-				machine.Status.CurrentStatus.Phase == "" {
+				(machine.Status.CurrentStatus.Phase == "" || machine.Status.CurrentStatus.Phase == v1alpha1.MachineCreating) {
 				klog.V(3).Infof("SafetyController: Machine object %q is being processed by machine controller, hence skipping", machine.Name)
 				continue
 			}
