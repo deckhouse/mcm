@@ -18,6 +18,8 @@ limitations under the License.
 package driver
 
 import (
+	"fmt"
+
 	"strings"
 
 	"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
@@ -25,7 +27,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-// Driver is the common interface for creation/deletion of the VMs over different cloud-providers.
 type Driver interface {
 	Create() (string, string, error)
 	Delete(string) error
@@ -97,6 +98,14 @@ func NewDriver(machineID string, secretData map[string][]byte, classKind string,
 			MachineID:          machineID,
 			MachineName:        machineName,
 		}
+
+	case "VsphereMachineClass":
+		return NewVsphereDriver(machineClass.(*v1alpha1.VsphereMachineClass),
+			secretData,
+			string(secretData["userData"]),
+			machineID,
+			machineName,
+		)
 	}
 
 	return NewFakeDriver(
@@ -124,4 +133,31 @@ func ExtractCredentialsFromData(data map[string][]byte, keys ...string) string {
 		}
 	}
 	return ""
+}
+
+type CreateError interface {
+	error
+
+	HasSideEffects() bool
+}
+
+type CreateFailErr struct {
+	err error
+
+	sideEffectsProduced bool
+}
+
+func NewCreateFailErr(err error, sideEffects bool) CreateFailErr {
+	return CreateFailErr{
+		err:                 err,
+		sideEffectsProduced: sideEffects,
+	}
+}
+
+func (e CreateFailErr) Error() string {
+	return fmt.Sprintf("VM creation failed: %s", e.err)
+}
+
+func (e CreateFailErr) HasSideEffects() bool {
+	return e.sideEffectsProduced
 }

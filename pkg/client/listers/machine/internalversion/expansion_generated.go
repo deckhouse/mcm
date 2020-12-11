@@ -105,3 +105,11 @@ type PacketMachineClassListerExpansion interface{}
 // PacketMachineClassNamespaceListerExpansion allows custom methods to be added to
 // PacketMachineClassNamespaceLister.
 type PacketMachineClassNamespaceListerExpansion interface{}
+
+// VsphereMachineClassListerExpansion allows custom methods to be added to
+// VsphereMachineClassLister.
+type VsphereMachineClassListerExpansion interface{}
+
+// VsphereMachineClassNamespaceListerExpansion allows custom methods to be added to
+// VsphereMachineClassNamespaceLister.
+type VsphereMachineClassNamespaceListerExpansion interface{}

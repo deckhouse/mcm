@@ -68,6 +68,10 @@ func (c *FakeMachineV1alpha1) PacketMachineClasses(namespace string) v1alpha1.Pa
 	return &FakePacketMachineClasses{c, namespace}
 }
 
+func (c *FakeMachineV1alpha1) VsphereMachineClasses(namespace string) v1alpha1.VsphereMachineClassInterface {
+	return &FakeVsphereMachineClasses{c, namespace}
+}
+
 // RESTClient returns a RESTClient that is used to communicate
 // with API server by this client implementation.
 func (c *FakeMachineV1alpha1) RESTClient() rest.Interface {

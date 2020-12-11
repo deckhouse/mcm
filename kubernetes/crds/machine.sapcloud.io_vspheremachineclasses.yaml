@@ -1,0 +1,144 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.3.0
+  creationTimestamp: null
+  name: vspheremachineclasses.machine.sapcloud.io
+spec:
+  additionalPrinterColumns:
+  - JSONPath: .spec.properties.hardwareProfile.vmSize
+    name: VM Size
+    type: string
+  - JSONPath: .spec.location
+    name: Location
+    priority: 1
+    type: string
+  - JSONPath: .metadata.creationTimestamp
+    description: |-
+      CreationTimestamp is a timestamp representing the server time when this object was created. It is not guaranteed to be set in happens-before order across separate operations. Clients may not set this value. It is represented in RFC3339 form and is in UTC.
+      Populated by the system. Read-only. Null for lists. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
+    name: Age
+    type: date
+  group: machine.sapcloud.io
+  names:
+    kind: VsphereMachineClass
+    listKind: VsphereMachineClassList
+    plural: vspheremachineclasses
+    singular: vspheremachineclass
+  scope: Namespaced
+  subresources: {}
+  validation:
+    openAPIV3Schema:
+      description: VsphereMachineClass TODO
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: VsphereMachineClassSpec is the specification of a cluster.
+          properties:
+            additionalNetworks:
+              items:
+                type: string
+              type: array
+            clusterNameTag:
+              type: string
+            datastore:
+              type: string
+            extraConfig:
+              additionalProperties:
+                type: string
+              type: object
+            mainNetwork:
+              type: string
+            memory:
+              format: int64
+              type: integer
+            nodeRoleTag:
+              type: string
+            numCPUs:
+              format: int64
+              type: integer
+            region:
+              type: string
+            resourcePool:
+              type: string
+            rootDiskSize:
+              format: int64
+              type: integer
+            runtimeOptions:
+              properties:
+                nestedHardwareVirtualization:
+                  type: boolean
+                resourceAllocationInfo:
+                  properties:
+                    cpuLimit:
+                      format: int64
+                      type: integer
+                    cpuReservation:
+                      format: int64
+                      type: integer
+                    cpuShares:
+                      format: int32
+                      type: integer
+                    memoryLimit:
+                      format: int64
+                      type: integer
+                    memoryReservation:
+                      format: int64
+                      type: integer
+                    memoryShares:
+                      format: int32
+                      type: integer
+                  type: object
+              type: object
+            secretRef:
+              description: SecretReference represents a Secret Reference. It has enough
+                information to retrieve secret in any namespace
+              properties:
+                name:
+                  description: Name is unique within a namespace to reference a secret
+                    resource.
+                  type: string
+                namespace:
+                  description: Namespace defines the space within which the secret
+                    name must be unique.
+                  type: string
+              type: object
+            sshKeys:
+              items:
+                type: string
+              type: array
+            template:
+              type: string
+            userData:
+              type: string
+            virtualMachineFolder:
+              type: string
+            zone:
+              type: string
+          type: object
+      type: object
+  version: v1alpha1
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

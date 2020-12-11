@@ -28,9 +28,10 @@ import (
 	intstrutil "k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/tools/cache"
 
+	"k8s.io/klog"
+
 	"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
 	"github.com/gardener/machine-controller-manager/pkg/driver"
-	"k8s.io/klog"
 )
 
 const (
@@ -409,6 +410,7 @@ func (c *controller) checkVMObjects() {
 	c.checkGCPMachineClass()
 	c.checkAlicloudMachineClass()
 	c.checkPacketMachineClass()
+	c.checkVsphereMachineClass()
 }
 
 // checkAWSMachineClass checks for orphan VMs in AWSMachinesClasses
@@ -517,6 +519,29 @@ func (c *controller) checkPacketMachineClass() {
 	for _, machineClass := range PacketMachineClasses {
 		c.checkMachineClass(
 			machineClass,
+			machineClass.Spec.SecretRef,
+			machineClass.Spec.CredentialsSecretRef,
+			machineClass.Name,
+			machineClass.Kind,
+		)
+	}
+}
+
+// checkPacketMachineClass checks for orphan VMs in PacketMachinesClasses
+func (c *controller) checkVsphereMachineClass() {
+	VsphereMachineClasses, err := c.vsphereMachineClassLister.List(labels.Everything())
+	if err != nil {
+		klog.Error("SafetyController: Error while trying to LIST machineClasses ", err)
+		return
+	}
+
+	for _, machineClass := range VsphereMachineClasses {
+
+		var machineClassInterface interface{}
+		machineClassInterface = machineClass
+
+		c.checkMachineClass(
+			machineClassInterface,
 			machineClass.Spec.SecretRef,
 			machineClass.Spec.CredentialsSecretRef,
 			machineClass.Name,

@@ -1192,6 +1192,72 @@ type PacketMachineClassSpec struct {
 	// TODO add more here
 }
 
+/********************** VsphereMachineClass APIs ***************/
+
+// +genclient
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
+// VsphereMachineClass TODO
+type VsphereMachineClass struct {
+	metav1.ObjectMeta
+
+	metav1.TypeMeta
+
+	Spec VsphereMachineClassSpec
+}
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
+// VsphereMachineClassList is a collection of VsphereMachineClass.
+type VsphereMachineClassList struct {
+	metav1.TypeMeta
+
+	metav1.ListMeta
+
+	Items []VsphereMachineClass
+}
+
+// VsphereMachineClassSpec is the specification of a cluster.
+type VsphereMachineClassSpec struct {
+	NumCPUs              uint64
+	Memory               uint64
+	Region               string
+	Zone                 string
+	ClusterNameTag       string
+	NodeRoleTag          string
+	Template             string
+	ResourcePool         string
+	VirtualMachineFolder string
+	MainNetwork          string
+	AdditionalNetworks   []string
+	Datastore            string
+	RootDiskSize         uint64
+	DisableTimesync      bool
+	SshKeys              []string
+	ExtraConfig          map[string]string
+
+	RuntimeOptions VsphereMachineClassSpecRuntimeOptions
+
+	UserData             string
+	SecretRef            *corev1.SecretReference
+	CredentialsSecretRef *corev1.SecretReference
+}
+
+type VsphereMachineClassSpecRuntimeOptions struct {
+	NestedHardwareVirtualization bool
+
+	ResourceAllocationInfo VsphereMachineClassSpecResourceAllocationInfo
+}
+
+type VsphereMachineClassSpecResourceAllocationInfo struct {
+	CpuShares         *int32
+	CpuLimit          *int64
+	CpuReservation    *int64
+	MemoryShares      *int32
+	MemoryLimit       *int64
+	MemoryReservation *int64
+}
+
 // +genclient
 // +genclient:noStatus
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

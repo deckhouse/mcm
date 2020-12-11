@@ -20,7 +20,6 @@ package controller
 import (
 	"time"
 
-	"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -29,6 +28,8 @@ import (
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/util/workqueue"
 	"k8s.io/klog"
+
+	"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
 )
 
 // reconcileClusterSecretKey reconciles an secret due to controller resync
@@ -335,4 +336,33 @@ func (c *controller) packetMachineClassToSecretUpdate(oldObj interface{}, newObj
 
 func (c *controller) packetMachineClassToSecretDelete(obj interface{}) {
 	c.packetMachineClassToSecretAdd(obj)
+}
+
+func (c *controller) vsphereMachineClassToSecretAdd(obj interface{}) {
+	machineClass, ok := obj.(*v1alpha1.VsphereMachineClass)
+	if machineClass == nil || !ok {
+		return
+	}
+	c.secretQueue.Add(machineClass.Spec.SecretRef.Namespace + "/" + machineClass.Spec.SecretRef.Name)
+}
+
+func (c *controller) vsphereMachineClassToSecretUpdate(oldObj interface{}, newObj interface{}) {
+	oldMachineClass, ok := oldObj.(*v1alpha1.VsphereMachineClass)
+	if oldMachineClass == nil || !ok {
+		return
+	}
+	newMachineClass, ok := newObj.(*v1alpha1.VsphereMachineClass)
+	if newMachineClass == nil || !ok {
+		return
+	}
+
+	if oldMachineClass.Spec.SecretRef.Name != newMachineClass.Spec.SecretRef.Name ||
+		oldMachineClass.Spec.SecretRef.Namespace != newMachineClass.Spec.SecretRef.Namespace {
+		c.secretQueue.Add(oldMachineClass.Spec.SecretRef.Namespace + "/" + oldMachineClass.Spec.SecretRef.Name)
+		c.secretQueue.Add(newMachineClass.Spec.SecretRef.Namespace + "/" + newMachineClass.Spec.SecretRef.Name)
+	}
+}
+
+func (c *controller) vsphereMachineClassToSecretDelete(obj interface{}) {
+	c.vsphereMachineClassToSecretAdd(obj)
 }

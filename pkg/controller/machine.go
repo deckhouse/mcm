@@ -42,6 +42,7 @@ import (
 	"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
 	"github.com/gardener/machine-controller-manager/pkg/apis/machine/validation"
 	"github.com/gardener/machine-controller-manager/pkg/driver"
+	drivers "github.com/gardener/machine-controller-manager/pkg/driver"
 	utiltime "github.com/gardener/machine-controller-manager/pkg/util/time"
 )
 
@@ -84,7 +85,7 @@ func (c *controller) enqueueMachine(obj interface{}) {
 
 	machine := obj.(*v1alpha1.Machine)
 	switch machine.Spec.Class.Kind {
-	case AlicloudMachineClassKind, AWSMachineClassKind, AzureMachineClassKind, GCPMachineClassKind, OpenStackMachineClassKind, PacketMachineClassKind:
+	case AlicloudMachineClassKind, AWSMachineClassKind, AzureMachineClassKind, GCPMachineClassKind, OpenStackMachineClassKind, PacketMachineClassKind, VsphereMachineClassKind:
 		// Checking if machineClass is to be processed by MCM, and then only enqueue the machine object
 		klog.V(4).Infof("Adding machine object to the queue %q", key)
 		c.machineQueue.Add(key)
@@ -168,7 +169,7 @@ func (c *controller) reconcileClusterMachine(machine *v1alpha1.Machine) error {
 		return nil
 	}
 
-	driver := driver.NewDriver(machine.Spec.ProviderID, secretData, machine.Spec.Class.Kind, MachineClass, machine.Name)
+	driver := drivers.NewDriver(machine.Spec.ProviderID, secretData, machine.Spec.Class.Kind, MachineClass, machine.Name)
 	actualProviderID, err := driver.GetExisting()
 	if err != nil {
 		return err
@@ -472,6 +473,32 @@ func (c *controller) machineCreate(machine *v1alpha1.Machine, driver driver.Driv
 	}
 	if actualProviderID == "" {
 		actualProviderID, nodeName, err = driver.Create()
+		var e drivers.CreateError
+		if errors.As(err, &e) && e.HasSideEffects() && actualProviderID != "" {
+			klog.Errorf("Side-effects left, applying machineID %q to Machine object", actualProviderID)
+
+			for {
+				machineName := machine.Name
+
+				machine, err := c.controlMachineClient.Machines(machine.Namespace).Get(machine.Name, metav1.GetOptions{})
+				if err != nil {
+					klog.Warningf("Machine GET failed for %q. Retrying, error: %s", machineName, err)
+					continue
+				}
+
+				clone := machine.DeepCopy()
+
+				clone.Spec.ProviderID = actualProviderID
+
+				machine, err = c.controlMachineClient.Machines(clone.Namespace).Update(clone)
+				if err != nil {
+					klog.Warningf("Machine UPDATE failed for %q. Retrying, error: %s", machineName, err)
+					continue
+				}
+
+				break
+			}
+		}
 	}
 
 	if err != nil {
@@ -609,7 +636,7 @@ func (c *controller) machineUpdate(machine *v1alpha1.Machine, actualProviderID s
 	return nil
 }
 
-func (c *controller) machineDelete(machine *v1alpha1.Machine, driver driver.Driver) error {
+func (c *controller) machineDelete(machine *v1alpha1.Machine, driver drivers.Driver) error {
 	var err error
 	nodeName := machine.Status.Node
 

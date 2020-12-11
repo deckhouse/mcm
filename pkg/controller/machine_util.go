@@ -25,19 +25,21 @@ package controller
 import (
 	"encoding/json"
 
-	"github.com/gardener/machine-controller-manager/pkg/apis/machine/validation"
-	"github.com/gardener/machine-controller-manager/pkg/util/nodeops"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog"
+
+	"github.com/gardener/machine-controller-manager/pkg/apis/machine/validation"
+	"github.com/gardener/machine-controller-manager/pkg/util/nodeops"
+
+	v1 "k8s.io/api/core/v1"
+	errorsutil "k8s.io/apimachinery/pkg/util/errors"
+	"k8s.io/client-go/util/retry"
 
 	machineapi "github.com/gardener/machine-controller-manager/pkg/apis/machine"
 	"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
 	v1alpha1client "github.com/gardener/machine-controller-manager/pkg/client/clientset/versioned/typed/machine/v1alpha1"
 	v1alpha1listers "github.com/gardener/machine-controller-manager/pkg/client/listers/machine/v1alpha1"
-	v1 "k8s.io/api/core/v1"
-	errorsutil "k8s.io/apimachinery/pkg/util/errors"
-	"k8s.io/client-go/util/retry"
 )
 
 const (
@@ -267,6 +269,34 @@ func (c *controller) validateMachineClass(classSpec *v1alpha1.ClassSpec) (interf
 		if err != nil {
 			klog.V(2).Infof("Could not compute secret data: %+v", err)
 			return MachineClass, nil, err
+		}
+	case "VsphereMachineClass":
+		VsphereMachineClass, err := c.vsphereMachineClassLister.VsphereMachineClasses(c.namespace).Get(classSpec.Name)
+		if err != nil {
+			klog.V(2).Infof("VsphereMachineClass %q not found. Skipping. %v", classSpec.Name, err)
+			return MachineClass, secretData, err
+		}
+		MachineClass = VsphereMachineClass
+
+		// Validate VsphereMachineClass
+		internalVsphereMachineClass := &machineapi.VsphereMachineClass{}
+		err = c.internalExternalScheme.Convert(VsphereMachineClass, internalVsphereMachineClass, nil)
+		if err != nil {
+			klog.V(2).Info("Error in scheme conversion")
+			return MachineClass, secretData, err
+		}
+
+		validationerr := validation.ValidateVsphereMachineClass(internalVsphereMachineClass)
+		if validationerr.ToAggregate() != nil && len(validationerr.ToAggregate().Errors()) > 0 {
+			klog.V(2).Infof("Validation of VsphereMachineClass failed %s", validationerr.ToAggregate().Error())
+			return MachineClass, secretData, nil
+		}
+
+		// Get secretRef
+		secretData, err = c.getSecretData(VsphereMachineClass.Name, VsphereMachineClass.Spec.SecretRef)
+		if err != nil || secretData == nil {
+			klog.V(2).Info("Secret reference not found")
+			return MachineClass, secretData, err
 		}
 
 	default:

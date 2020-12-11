@@ -37,3 +37,5 @@ type MachineSetExpansion interface{}
 type OpenStackMachineClassExpansion interface{}
 
 type PacketMachineClassExpansion interface{}
+
+type VsphereMachineClassExpansion interface{}

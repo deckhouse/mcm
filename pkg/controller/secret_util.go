@@ -18,8 +18,9 @@ limitations under the License.
 package controller
 
 import (
-	"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
 	"k8s.io/apimachinery/pkg/labels"
+
+	"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
 )
 
 // existsMachineClassForSecret checks for any machineClass
@@ -55,12 +56,18 @@ func (c *controller) existsMachineClassForSecret(name string) (bool, error) {
 		return false, err
 	}
 
+	vsphereMachineClasses, err := c.findVsphereMachineClassForSecret(name)
+	if err != nil {
+		return false, err
+	}
+
 	if len(openStackMachineClasses) == 0 &&
 		len(gcpMachineClasses) == 0 &&
 		len(azureMachineClasses) == 0 &&
 		len(packetMachineClasses) == 0 &&
 		len(alicloudMachineClasses) == 0 &&
-		len(awsMachineClasses) == 0 {
+		len(awsMachineClasses) == 0 &&
+		len(vsphereMachineClasses) == 0 {
 		return false, nil
 	}
 
@@ -163,6 +170,22 @@ func (c *controller) findPacketMachineClassForSecret(name string) ([]*v1alpha1.P
 	for _, machineClass := range machineClasses {
 		if (machineClass.Spec.SecretRef != nil && machineClass.Spec.SecretRef.Name == name) ||
 			(machineClass.Spec.CredentialsSecretRef != nil && machineClass.Spec.CredentialsSecretRef.Name == name) {
+			filtered = append(filtered, machineClass)
+		}
+	}
+	return filtered, nil
+}
+
+// findVsphereClassForSecret returns the set of
+// VsphereMachineClasses referring to the passed secret
+func (c *controller) findVsphereMachineClassForSecret(name string) ([]*v1alpha1.VsphereMachineClass, error) {
+	machineClasses, err := c.vsphereMachineClassLister.List(labels.Everything())
+	if err != nil {
+		return nil, err
+	}
+	var filtered []*v1alpha1.VsphereMachineClass
+	for _, machineClass := range machineClasses {
+		if machineClass.Spec.SecretRef.Name == name {
 			filtered = append(filtered, machineClass)
 		}
 	}

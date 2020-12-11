@@ -44,6 +44,8 @@ type Interface interface {
 	OpenStackMachineClasses() OpenStackMachineClassInformer
 	// PacketMachineClasses returns a PacketMachineClassInformer.
 	PacketMachineClasses() PacketMachineClassInformer
+	// VsphereMachineClasses returns a VsphereMachineClassInformer.
+	VsphereMachineClasses() VsphereMachineClassInformer
 }
 
 type version struct {
@@ -105,4 +107,9 @@ func (v *version) OpenStackMachineClasses() OpenStackMachineClassInformer {
 // PacketMachineClasses returns a PacketMachineClassInformer.
 func (v *version) PacketMachineClasses() PacketMachineClassInformer {
 	return &packetMachineClassInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
+}
+
+// VsphereMachineClasses returns a VsphereMachineClassInformer.
+func (v *version) VsphereMachineClasses() VsphereMachineClassInformer {
+	return &vsphereMachineClassInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
 }

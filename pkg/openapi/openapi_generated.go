@@ -31,80 +31,85 @@ import (
 
 func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenAPIDefinition {
 	return map[string]common.OpenAPIDefinition{
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AWSBlockDeviceMappingSpec":                schema_pkg_apis_machine_v1alpha1_AWSBlockDeviceMappingSpec(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AWSEbsBlockDeviceSpec":                    schema_pkg_apis_machine_v1alpha1_AWSEbsBlockDeviceSpec(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AWSIAMProfileSpec":                        schema_pkg_apis_machine_v1alpha1_AWSIAMProfileSpec(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AWSMachineClass":                          schema_pkg_apis_machine_v1alpha1_AWSMachineClass(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AWSMachineClassList":                      schema_pkg_apis_machine_v1alpha1_AWSMachineClassList(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AWSMachineClassSpec":                      schema_pkg_apis_machine_v1alpha1_AWSMachineClassSpec(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AWSNetworkInterfaceSpec":                  schema_pkg_apis_machine_v1alpha1_AWSNetworkInterfaceSpec(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AlicloudDataDisk":                         schema_pkg_apis_machine_v1alpha1_AlicloudDataDisk(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AlicloudMachineClass":                     schema_pkg_apis_machine_v1alpha1_AlicloudMachineClass(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AlicloudMachineClassList":                 schema_pkg_apis_machine_v1alpha1_AlicloudMachineClassList(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AlicloudMachineClassSpec":                 schema_pkg_apis_machine_v1alpha1_AlicloudMachineClassSpec(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AlicloudSystemDisk":                       schema_pkg_apis_machine_v1alpha1_AlicloudSystemDisk(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AzureDataDisk":                            schema_pkg_apis_machine_v1alpha1_AzureDataDisk(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AzureHardwareProfile":                     schema_pkg_apis_machine_v1alpha1_AzureHardwareProfile(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AzureImageReference":                      schema_pkg_apis_machine_v1alpha1_AzureImageReference(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AzureLinuxConfiguration":                  schema_pkg_apis_machine_v1alpha1_AzureLinuxConfiguration(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AzureMachineClass":                        schema_pkg_apis_machine_v1alpha1_AzureMachineClass(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AzureMachineClassList":                    schema_pkg_apis_machine_v1alpha1_AzureMachineClassList(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AzureMachineClassSpec":                    schema_pkg_apis_machine_v1alpha1_AzureMachineClassSpec(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AzureMachineSetConfig":                    schema_pkg_apis_machine_v1alpha1_AzureMachineSetConfig(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AzureManagedDiskParameters":               schema_pkg_apis_machine_v1alpha1_AzureManagedDiskParameters(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AzureNetworkInterfaceReference":           schema_pkg_apis_machine_v1alpha1_AzureNetworkInterfaceReference(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AzureNetworkInterfaceReferenceProperties": schema_pkg_apis_machine_v1alpha1_AzureNetworkInterfaceReferenceProperties(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AzureNetworkProfile":                      schema_pkg_apis_machine_v1alpha1_AzureNetworkProfile(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AzureOSDisk":                              schema_pkg_apis_machine_v1alpha1_AzureOSDisk(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AzureOSProfile":                           schema_pkg_apis_machine_v1alpha1_AzureOSProfile(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AzureSSHConfiguration":                    schema_pkg_apis_machine_v1alpha1_AzureSSHConfiguration(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AzureSSHPublicKey":                        schema_pkg_apis_machine_v1alpha1_AzureSSHPublicKey(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AzureStorageProfile":                      schema_pkg_apis_machine_v1alpha1_AzureStorageProfile(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AzureSubResource":                         schema_pkg_apis_machine_v1alpha1_AzureSubResource(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AzureSubnetInfo":                          schema_pkg_apis_machine_v1alpha1_AzureSubnetInfo(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AzureVirtualMachineProperties":            schema_pkg_apis_machine_v1alpha1_AzureVirtualMachineProperties(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.ClassSpec":                                schema_pkg_apis_machine_v1alpha1_ClassSpec(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.CurrentStatus":                            schema_pkg_apis_machine_v1alpha1_CurrentStatus(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.GCPDisk":                                  schema_pkg_apis_machine_v1alpha1_GCPDisk(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.GCPMachineClass":                          schema_pkg_apis_machine_v1alpha1_GCPMachineClass(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.GCPMachineClassList":                      schema_pkg_apis_machine_v1alpha1_GCPMachineClassList(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.GCPMachineClassSpec":                      schema_pkg_apis_machine_v1alpha1_GCPMachineClassSpec(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.GCPMetadata":                              schema_pkg_apis_machine_v1alpha1_GCPMetadata(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.GCPNetworkInterface":                      schema_pkg_apis_machine_v1alpha1_GCPNetworkInterface(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.GCPScheduling":                            schema_pkg_apis_machine_v1alpha1_GCPScheduling(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.GCPServiceAccount":                        schema_pkg_apis_machine_v1alpha1_GCPServiceAccount(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.LastOperation":                            schema_pkg_apis_machine_v1alpha1_LastOperation(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.Machine":                                  schema_pkg_apis_machine_v1alpha1_Machine(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.MachineClass":                             schema_pkg_apis_machine_v1alpha1_MachineClass(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.MachineClassList":                         schema_pkg_apis_machine_v1alpha1_MachineClassList(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.MachineConfiguration":                     schema_pkg_apis_machine_v1alpha1_MachineConfiguration(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.MachineDeployment":                        schema_pkg_apis_machine_v1alpha1_MachineDeployment(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.MachineDeploymentCondition":               schema_pkg_apis_machine_v1alpha1_MachineDeploymentCondition(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.MachineDeploymentList":                    schema_pkg_apis_machine_v1alpha1_MachineDeploymentList(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.MachineDeploymentSpec":                    schema_pkg_apis_machine_v1alpha1_MachineDeploymentSpec(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.MachineDeploymentStatus":                  schema_pkg_apis_machine_v1alpha1_MachineDeploymentStatus(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.MachineDeploymentStrategy":                schema_pkg_apis_machine_v1alpha1_MachineDeploymentStrategy(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.MachineList":                              schema_pkg_apis_machine_v1alpha1_MachineList(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.MachineSet":                               schema_pkg_apis_machine_v1alpha1_MachineSet(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.MachineSetCondition":                      schema_pkg_apis_machine_v1alpha1_MachineSetCondition(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.MachineSetList":                           schema_pkg_apis_machine_v1alpha1_MachineSetList(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.MachineSetSpec":                           schema_pkg_apis_machine_v1alpha1_MachineSetSpec(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.MachineSetStatus":                         schema_pkg_apis_machine_v1alpha1_MachineSetStatus(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.MachineSpec":                              schema_pkg_apis_machine_v1alpha1_MachineSpec(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.MachineStatus":                            schema_pkg_apis_machine_v1alpha1_MachineStatus(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.MachineSummary":                           schema_pkg_apis_machine_v1alpha1_MachineSummary(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.MachineTemplateSpec":                      schema_pkg_apis_machine_v1alpha1_MachineTemplateSpec(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.NodeTemplateSpec":                         schema_pkg_apis_machine_v1alpha1_NodeTemplateSpec(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.OpenStackMachineClass":                    schema_pkg_apis_machine_v1alpha1_OpenStackMachineClass(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.OpenStackMachineClassList":                schema_pkg_apis_machine_v1alpha1_OpenStackMachineClassList(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.OpenStackMachineClassSpec":                schema_pkg_apis_machine_v1alpha1_OpenStackMachineClassSpec(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.OpenStackNetwork":                         schema_pkg_apis_machine_v1alpha1_OpenStackNetwork(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.PacketMachineClass":                       schema_pkg_apis_machine_v1alpha1_PacketMachineClass(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.PacketMachineClassList":                   schema_pkg_apis_machine_v1alpha1_PacketMachineClassList(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.PacketMachineClassSpec":                   schema_pkg_apis_machine_v1alpha1_PacketMachineClassSpec(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.RollbackConfig":                           schema_pkg_apis_machine_v1alpha1_RollbackConfig(ref),
-		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.RollingUpdateMachineDeployment":           schema_pkg_apis_machine_v1alpha1_RollingUpdateMachineDeployment(ref),
-		"k8s.io/api/core/v1.AWSElasticBlockStoreVolumeSource":                                                               schema_k8sio_api_core_v1_AWSElasticBlockStoreVolumeSource(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AWSBlockDeviceMappingSpec":                     schema_pkg_apis_machine_v1alpha1_AWSBlockDeviceMappingSpec(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AWSEbsBlockDeviceSpec":                         schema_pkg_apis_machine_v1alpha1_AWSEbsBlockDeviceSpec(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AWSIAMProfileSpec":                             schema_pkg_apis_machine_v1alpha1_AWSIAMProfileSpec(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AWSMachineClass":                               schema_pkg_apis_machine_v1alpha1_AWSMachineClass(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AWSMachineClassList":                           schema_pkg_apis_machine_v1alpha1_AWSMachineClassList(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AWSMachineClassSpec":                           schema_pkg_apis_machine_v1alpha1_AWSMachineClassSpec(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AWSNetworkInterfaceSpec":                       schema_pkg_apis_machine_v1alpha1_AWSNetworkInterfaceSpec(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AlicloudDataDisk":                              schema_pkg_apis_machine_v1alpha1_AlicloudDataDisk(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AlicloudMachineClass":                          schema_pkg_apis_machine_v1alpha1_AlicloudMachineClass(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AlicloudMachineClassList":                      schema_pkg_apis_machine_v1alpha1_AlicloudMachineClassList(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AlicloudMachineClassSpec":                      schema_pkg_apis_machine_v1alpha1_AlicloudMachineClassSpec(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AlicloudSystemDisk":                            schema_pkg_apis_machine_v1alpha1_AlicloudSystemDisk(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AzureDataDisk":                                 schema_pkg_apis_machine_v1alpha1_AzureDataDisk(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AzureHardwareProfile":                          schema_pkg_apis_machine_v1alpha1_AzureHardwareProfile(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AzureImageReference":                           schema_pkg_apis_machine_v1alpha1_AzureImageReference(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AzureLinuxConfiguration":                       schema_pkg_apis_machine_v1alpha1_AzureLinuxConfiguration(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AzureMachineClass":                             schema_pkg_apis_machine_v1alpha1_AzureMachineClass(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AzureMachineClassList":                         schema_pkg_apis_machine_v1alpha1_AzureMachineClassList(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AzureMachineClassSpec":                         schema_pkg_apis_machine_v1alpha1_AzureMachineClassSpec(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AzureMachineSetConfig":                         schema_pkg_apis_machine_v1alpha1_AzureMachineSetConfig(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AzureManagedDiskParameters":                    schema_pkg_apis_machine_v1alpha1_AzureManagedDiskParameters(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AzureNetworkInterfaceReference":                schema_pkg_apis_machine_v1alpha1_AzureNetworkInterfaceReference(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AzureNetworkInterfaceReferenceProperties":      schema_pkg_apis_machine_v1alpha1_AzureNetworkInterfaceReferenceProperties(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AzureNetworkProfile":                           schema_pkg_apis_machine_v1alpha1_AzureNetworkProfile(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AzureOSDisk":                                   schema_pkg_apis_machine_v1alpha1_AzureOSDisk(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AzureOSProfile":                                schema_pkg_apis_machine_v1alpha1_AzureOSProfile(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AzureSSHConfiguration":                         schema_pkg_apis_machine_v1alpha1_AzureSSHConfiguration(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AzureSSHPublicKey":                             schema_pkg_apis_machine_v1alpha1_AzureSSHPublicKey(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AzureStorageProfile":                           schema_pkg_apis_machine_v1alpha1_AzureStorageProfile(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AzureSubResource":                              schema_pkg_apis_machine_v1alpha1_AzureSubResource(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AzureSubnetInfo":                               schema_pkg_apis_machine_v1alpha1_AzureSubnetInfo(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AzureVirtualMachineProperties":                 schema_pkg_apis_machine_v1alpha1_AzureVirtualMachineProperties(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.ClassSpec":                                     schema_pkg_apis_machine_v1alpha1_ClassSpec(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.CurrentStatus":                                 schema_pkg_apis_machine_v1alpha1_CurrentStatus(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.GCPDisk":                                       schema_pkg_apis_machine_v1alpha1_GCPDisk(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.GCPMachineClass":                               schema_pkg_apis_machine_v1alpha1_GCPMachineClass(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.GCPMachineClassList":                           schema_pkg_apis_machine_v1alpha1_GCPMachineClassList(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.GCPMachineClassSpec":                           schema_pkg_apis_machine_v1alpha1_GCPMachineClassSpec(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.GCPMetadata":                                   schema_pkg_apis_machine_v1alpha1_GCPMetadata(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.GCPNetworkInterface":                           schema_pkg_apis_machine_v1alpha1_GCPNetworkInterface(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.GCPScheduling":                                 schema_pkg_apis_machine_v1alpha1_GCPScheduling(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.GCPServiceAccount":                             schema_pkg_apis_machine_v1alpha1_GCPServiceAccount(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.LastOperation":                                 schema_pkg_apis_machine_v1alpha1_LastOperation(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.Machine":                                       schema_pkg_apis_machine_v1alpha1_Machine(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.MachineClass":                                  schema_pkg_apis_machine_v1alpha1_MachineClass(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.MachineClassList":                              schema_pkg_apis_machine_v1alpha1_MachineClassList(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.MachineConfiguration":                          schema_pkg_apis_machine_v1alpha1_MachineConfiguration(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.MachineDeployment":                             schema_pkg_apis_machine_v1alpha1_MachineDeployment(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.MachineDeploymentCondition":                    schema_pkg_apis_machine_v1alpha1_MachineDeploymentCondition(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.MachineDeploymentList":                         schema_pkg_apis_machine_v1alpha1_MachineDeploymentList(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.MachineDeploymentSpec":                         schema_pkg_apis_machine_v1alpha1_MachineDeploymentSpec(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.MachineDeploymentStatus":                       schema_pkg_apis_machine_v1alpha1_MachineDeploymentStatus(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.MachineDeploymentStrategy":                     schema_pkg_apis_machine_v1alpha1_MachineDeploymentStrategy(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.MachineList":                                   schema_pkg_apis_machine_v1alpha1_MachineList(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.MachineSet":                                    schema_pkg_apis_machine_v1alpha1_MachineSet(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.MachineSetCondition":                           schema_pkg_apis_machine_v1alpha1_MachineSetCondition(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.MachineSetList":                                schema_pkg_apis_machine_v1alpha1_MachineSetList(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.MachineSetSpec":                                schema_pkg_apis_machine_v1alpha1_MachineSetSpec(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.MachineSetStatus":                              schema_pkg_apis_machine_v1alpha1_MachineSetStatus(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.MachineSpec":                                   schema_pkg_apis_machine_v1alpha1_MachineSpec(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.MachineStatus":                                 schema_pkg_apis_machine_v1alpha1_MachineStatus(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.MachineSummary":                                schema_pkg_apis_machine_v1alpha1_MachineSummary(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.MachineTemplateSpec":                           schema_pkg_apis_machine_v1alpha1_MachineTemplateSpec(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.NodeTemplateSpec":                              schema_pkg_apis_machine_v1alpha1_NodeTemplateSpec(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.OpenStackMachineClass":                         schema_pkg_apis_machine_v1alpha1_OpenStackMachineClass(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.OpenStackMachineClassList":                     schema_pkg_apis_machine_v1alpha1_OpenStackMachineClassList(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.OpenStackMachineClassSpec":                     schema_pkg_apis_machine_v1alpha1_OpenStackMachineClassSpec(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.OpenStackNetwork":                              schema_pkg_apis_machine_v1alpha1_OpenStackNetwork(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.PacketMachineClass":                            schema_pkg_apis_machine_v1alpha1_PacketMachineClass(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.PacketMachineClassList":                        schema_pkg_apis_machine_v1alpha1_PacketMachineClassList(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.PacketMachineClassSpec":                        schema_pkg_apis_machine_v1alpha1_PacketMachineClassSpec(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.RollbackConfig":                                schema_pkg_apis_machine_v1alpha1_RollbackConfig(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.RollingUpdateMachineDeployment":                schema_pkg_apis_machine_v1alpha1_RollingUpdateMachineDeployment(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.VsphereMachineClass":                           schema_pkg_apis_machine_v1alpha1_VsphereMachineClass(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.VsphereMachineClassList":                       schema_pkg_apis_machine_v1alpha1_VsphereMachineClassList(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.VsphereMachineClassSpec":                       schema_pkg_apis_machine_v1alpha1_VsphereMachineClassSpec(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.VsphereMachineClassSpecResourceAllocationInfo": schema_pkg_apis_machine_v1alpha1_VsphereMachineClassSpecResourceAllocationInfo(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.VsphereMachineClassSpecRuntimeOptions":         schema_pkg_apis_machine_v1alpha1_VsphereMachineClassSpecRuntimeOptions(ref),
+		"k8s.io/api/core/v1.AWSElasticBlockStoreVolumeSource":                                                                    schema_k8sio_api_core_v1_AWSElasticBlockStoreVolumeSource(ref),
 		"k8s.io/api/core/v1.Affinity":                                    schema_k8sio_api_core_v1_Affinity(ref),
 		"k8s.io/api/core/v1.AttachedVolume":                              schema_k8sio_api_core_v1_AttachedVolume(ref),
 		"k8s.io/api/core/v1.AvoidPods":                                   schema_k8sio_api_core_v1_AvoidPods(ref),
@@ -3754,6 +3759,318 @@ func schema_pkg_apis_machine_v1alpha1_RollingUpdateMachineDeployment(ref common.
 		},
 		Dependencies: []string{
 			"k8s.io/apimachinery/pkg/util/intstr.IntOrString"},
+	}
+}
+
+func schema_pkg_apis_machine_v1alpha1_VsphereMachineClass(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "VsphereMachineClass TODO",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"metadata": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"),
+						},
+					},
+					"kind": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"apiVersion": {
+						SchemaProps: spec.SchemaProps{
+							Description: "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"spec": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.VsphereMachineClassSpec"),
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.VsphereMachineClassSpec", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+	}
+}
+
+func schema_pkg_apis_machine_v1alpha1_VsphereMachineClassList(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "VsphereMachineClassList is a collection of VsphereMachineClass.",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"kind": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"apiVersion": {
+						SchemaProps: spec.SchemaProps{
+							Description: "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"metadata": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"),
+						},
+					},
+					"items": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.VsphereMachineClass"),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.VsphereMachineClass", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
+	}
+}
+
+func schema_pkg_apis_machine_v1alpha1_VsphereMachineClassSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "VsphereMachineClassSpec is the specification of a cluster.",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"numCPUs": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int64",
+						},
+					},
+					"memory": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int64",
+						},
+					},
+					"region": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"zone": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"clusterNameTag": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"nodeRoleTag": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"template": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"resourcePool": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"virtualMachineFolder": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"mainNetwork": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"additionalNetworks": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+					"datastore": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"rootDiskSize": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int64",
+						},
+					},
+					"disableTimesync": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"boolean"},
+							Format: "",
+						},
+					},
+					"sshKeys": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+					"extraConfig": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+					"runtimeOptions": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.VsphereMachineClassSpecRuntimeOptions"),
+						},
+					},
+					"userData": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"secretRef": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/api/core/v1.SecretReference"),
+						},
+					},
+					"credentialsSecretRef": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/api/core/v1.SecretReference"),
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.VsphereMachineClassSpecRuntimeOptions", "k8s.io/api/core/v1.SecretReference"},
+	}
+}
+
+func schema_pkg_apis_machine_v1alpha1_VsphereMachineClassSpecResourceAllocationInfo(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"cpuShares": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int32",
+						},
+					},
+					"cpuLimit": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int64",
+						},
+					},
+					"cpuReservation": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int64",
+						},
+					},
+					"memoryShares": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int32",
+						},
+					},
+					"memoryLimit": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int64",
+						},
+					},
+					"memoryReservation": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int64",
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func schema_pkg_apis_machine_v1alpha1_VsphereMachineClassSpecRuntimeOptions(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"nestedHardwareVirtualization": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"boolean"},
+							Format: "",
+						},
+					},
+					"resourceAllocationInfo": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.VsphereMachineClassSpecResourceAllocationInfo"),
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.VsphereMachineClassSpecResourceAllocationInfo"},
 	}
 }
 

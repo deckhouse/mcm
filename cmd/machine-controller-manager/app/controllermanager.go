@@ -32,17 +32,15 @@ import (
 	"strconv"
 	"time"
 
+	coreinformers "k8s.io/client-go/informers"
+	kubescheme "k8s.io/client-go/kubernetes/scheme"
+
 	machinescheme "github.com/gardener/machine-controller-manager/pkg/client/clientset/versioned/scheme"
 	machineinformers "github.com/gardener/machine-controller-manager/pkg/client/informers/externalversions"
 	mcmcontroller "github.com/gardener/machine-controller-manager/pkg/controller"
 	corecontroller "github.com/gardener/machine-controller-manager/pkg/util/clientbuilder/core"
 	machinecontroller "github.com/gardener/machine-controller-manager/pkg/util/clientbuilder/machine"
-	coreinformers "k8s.io/client-go/informers"
-	kubescheme "k8s.io/client-go/kubernetes/scheme"
 
-	"github.com/gardener/machine-controller-manager/cmd/machine-controller-manager/app/options"
-	"github.com/gardener/machine-controller-manager/pkg/handlers"
-	"github.com/gardener/machine-controller-manager/pkg/util/configz"
 	"github.com/prometheus/client_golang/prometheus"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -58,6 +56,10 @@ import (
 	"k8s.io/client-go/tools/leaderelection/resourcelock"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/klog"
+
+	"github.com/gardener/machine-controller-manager/cmd/machine-controller-manager/app/options"
+	"github.com/gardener/machine-controller-manager/pkg/handlers"
+	"github.com/gardener/machine-controller-manager/pkg/util/configz"
 )
 
 const (
@@ -265,6 +267,7 @@ func StartControllers(s *options.MCMServer,
 			machineSharedInformers.GCPMachineClasses(),
 			machineSharedInformers.AlicloudMachineClasses(),
 			machineSharedInformers.PacketMachineClasses(),
+			machineSharedInformers.VsphereMachineClasses(),
 			machineSharedInformers.Machines(),
 			machineSharedInformers.MachineSets(),
 			machineSharedInformers.MachineDeployments(),
