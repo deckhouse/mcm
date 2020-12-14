@@ -25,14 +25,15 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
-	"github.com/gardener/machine-controller-manager/pkg/metrics"
 	"github.com/gophercloud/gophercloud/openstack/networking/v2/extensions/security/groups"
 	"github.com/gophercloud/gophercloud/openstack/networking/v2/networks"
 	"github.com/gophercloud/gophercloud/openstack/networking/v2/subnets"
 	"github.com/prometheus/client_golang/prometheus"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/klog"
+
+	"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1"
+	"github.com/gardener/machine-controller-manager/pkg/metrics"
 
 	"github.com/gophercloud/gophercloud"
 	"github.com/gophercloud/gophercloud/openstack"
@@ -41,6 +42,7 @@ import (
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/extensions/schedulerhints"
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/images"
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/servers"
+	"github.com/gophercloud/gophercloud/openstack/networking/v2/extensions/portsecurity"
 	"github.com/gophercloud/gophercloud/openstack/networking/v2/ports"
 	"github.com/gophercloud/gophercloud/pagination"
 	"github.com/gophercloud/utils/client"
@@ -215,7 +217,6 @@ func (d *OpenStackDriver) Create() (string, string, error) {
 		FlavorName:       flavorName,
 		ImageRef:         imageRef,
 		Networks:         serverNetworks,
-		SecurityGroups:   securityGroups,
 		Metadata:         metadata,
 		UserData:         []byte(d.UserData),
 		AvailabilityZone: availabilityZone,
@@ -283,7 +284,11 @@ func (d *OpenStackDriver) Create() (string, string, error) {
 	}
 	metrics.APIRequestCount.With(prometheus.Labels{"provider": "openstack", "service": "neutron"}).Inc()
 
-	allPorts, err := ports.ExtractPorts(allPages)
+	var allPorts []struct {
+		ports.Port
+		portsecurity.PortSecurityExt
+	}
+	err = ports.ExtractPortsInto(allPages, &allPorts)
 	if err != nil {
 		return "", "", d.deleteOnFail(fmt.Errorf("failed to extract ports: %s", err))
 	}
@@ -292,18 +297,40 @@ func (d *OpenStackDriver) Create() (string, string, error) {
 		return "", "", d.deleteOnFail(fmt.Errorf("got an empty port list for server ID %s", server.ID))
 	}
 
+	var securityGroupIDs []string
+	for _, sgName := range securityGroups {
+		id, err := groups.IDFromName(nwClient, sgName)
+		if err != nil {
+			return "", "", d.deleteOnFail(fmt.Errorf("got an error while converting SG Name %q to ID: %s", sgName, err))
+		}
+		securityGroupIDs = append(securityGroupIDs, id)
+	}
+	if len(allPorts) == 0 {
+		return "", "", d.deleteOnFail(fmt.Errorf("got an empty port list for server ID %s", server.ID))
+	}
+
 	for _, port := range allPorts {
+		var shouldUpdate bool
+		var updateOpts ports.UpdateOpts
 		for id := range podNetworkIds {
 			if port.NetworkID == id {
-				_, err := ports.Update(nwClient, port.ID, ports.UpdateOpts{
-					AllowedAddressPairs: &[]ports.AddressPair{{IPAddress: podNetworkCidr}},
-				}).Extract()
-				if err != nil {
-					metrics.APIFailedRequestCount.With(prometheus.Labels{"provider": "openstack", "service": "neutron"}).Inc()
-					return "", "", d.deleteOnFail(fmt.Errorf("failed to update allowed address pair for port ID %s: %s", port.ID, err))
-				}
-				metrics.APIRequestCount.With(prometheus.Labels{"provider": "openstack", "service": "neutron"}).Inc()
+				updateOpts.AllowedAddressPairs = &[]ports.AddressPair{{IPAddress: podNetworkCidr}}
+				shouldUpdate = true
 			}
+		}
+
+		if len(securityGroupIDs) != 0 && port.PortSecurityEnabled {
+			updateOpts.SecurityGroups = &securityGroupIDs
+			shouldUpdate = true
+		}
+
+		if shouldUpdate {
+			_, err := ports.Update(nwClient, port.ID, updateOpts).Extract()
+			if err != nil {
+				metrics.APIFailedRequestCount.With(prometheus.Labels{"provider": "openstack", "service": "neutron"}).Inc()
+				return "", "", d.deleteOnFail(fmt.Errorf("failed to update allowed address pair for port ID %s: %s", port.ID, err))
+			}
+			metrics.APIRequestCount.With(prometheus.Labels{"provider": "openstack", "service": "neutron"}).Inc()
 		}
 	}
 
