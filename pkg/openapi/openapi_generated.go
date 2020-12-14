@@ -692,6 +692,12 @@ func schema_pkg_apis_machine_v1alpha1_AWSMachineClassSpec(ref common.ReferenceCa
 							Ref: ref("k8s.io/api/core/v1.SecretReference"),
 						},
 					},
+					"useMachineNameAsNodeName": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"boolean"},
+							Format: "",
+						},
+					},
 				},
 			},
 		},

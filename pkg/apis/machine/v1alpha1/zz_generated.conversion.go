@@ -1039,6 +1039,7 @@ func autoConvert_v1alpha1_AWSMachineClassSpec_To_machine_AWSMachineClassSpec(in 
 	out.SpotPrice = (*string)(unsafe.Pointer(in.SpotPrice))
 	out.SecretRef = (*v1.SecretReference)(unsafe.Pointer(in.SecretRef))
 	out.CredentialsSecretRef = (*v1.SecretReference)(unsafe.Pointer(in.CredentialsSecretRef))
+	out.UseMachineNameAsNodeName = in.UseMachineNameAsNodeName
 	return nil
 }
 
@@ -1063,6 +1064,7 @@ func autoConvert_machine_AWSMachineClassSpec_To_v1alpha1_AWSMachineClassSpec(in 
 	out.SpotPrice = (*string)(unsafe.Pointer(in.SpotPrice))
 	out.SecretRef = (*v1.SecretReference)(unsafe.Pointer(in.SecretRef))
 	out.CredentialsSecretRef = (*v1.SecretReference)(unsafe.Pointer(in.CredentialsSecretRef))
+	out.UseMachineNameAsNodeName = in.UseMachineNameAsNodeName
 	return nil
 }
 

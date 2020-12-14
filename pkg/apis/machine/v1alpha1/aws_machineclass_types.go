@@ -88,6 +88,8 @@ type AWSMachineClassSpec struct {
 	SecretRef            *corev1.SecretReference     `json:"secretRef,omitempty"`
 	CredentialsSecretRef *corev1.SecretReference     `json:"credentialsSecretRef,omitempty"`
 
+	UseMachineNameAsNodeName bool `json:"useMachineNameAsNodeName,omitempty"`
+
 	// TODO add more here
 }
 

@@ -715,6 +715,8 @@ type AWSMachineClassSpec struct {
 	SecretRef            *corev1.SecretReference
 	CredentialsSecretRef *corev1.SecretReference
 
+	UseMachineNameAsNodeName bool
+
 	// TODO add more here
 }
 
