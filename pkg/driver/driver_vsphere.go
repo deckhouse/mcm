@@ -819,10 +819,9 @@ func (d *VsphereDriver) GetVolNames(specs []corev1.PersistentVolumeSpec) ([]stri
 			// Not a volume provisioned by vSphere CSI driver
 			continue
 		}
-		if name, ok := spec.CSI.VolumeAttributes["name"]; ok {
-			names = append(names, name)
-		}
+		names = append(names, spec.CSI.VolumeHandle)
 	}
+
 	return names, nil
 }
 
