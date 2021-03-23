@@ -196,25 +196,25 @@ func (d *YandexDriver) Create() (string, string, error) {
 		return "", "", fmt.Errorf("Yandex.Cloud API returned %q instead of \"*compute.Instance\". That shouldn't happen", reflect.TypeOf(result).String())
 	}
 
-	return d.encodeMachineID(newInstance.FolderId, newInstance.ZoneId, newInstance.Name), d.MachineName, nil
+	return d.encodeMachineID(newInstance.Id), d.MachineName, nil
 }
 
-func (d *YandexDriver) encodeMachineID(folderID, zone, machineID string) string {
-	return fmt.Sprintf("yandex://%s/%s/%s", folderID, zone, machineID)
+func (d *YandexDriver) encodeMachineID(instanceId string) string {
+	return fmt.Sprintf("yandex://%s", instanceId)
 }
 
-var regExpProviderID = regexp.MustCompile(`^yandex://([^/]+)/([^/]+)/([^/]+)$`)
+var regExpProviderID = regexp.MustCompile(`^yandex://([^/]+)$`)
 var unexpectedMachineIdErr = errors.New("unexpected machineID")
 
-func (d *YandexDriver) decodeMachineID(machineID string) (string, string, string, error) {
+func (d *YandexDriver) decodeMachineID(machineID string) (string, error) {
 	// providerID is in the following form "${providerName}://${folderID}/${zone}/${instanceName}"
 	// So for input "yandex://b1g4c2a3g6vkffp3qacq/ru-central1-a/e2e-test-node0" output will be  "b1g4c2a3g6vkffp3qacq", "ru-central1-a", "e2e-test-node0".
 	matches := regExpProviderID.FindStringSubmatch(machineID)
-	if len(matches) != 4 {
-		return "", "", "", fmt.Errorf("%w: %s", unexpectedMachineIdErr, machineID)
+	if len(matches) != 2 {
+		return "", fmt.Errorf("%w: %s", unexpectedMachineIdErr, machineID)
 	}
 
-	return matches[1], matches[2], matches[3], nil
+	return matches[1], nil
 }
 
 func (d *YandexDriver) Delete(machineID string) error {
@@ -222,25 +222,11 @@ func (d *YandexDriver) Delete(machineID string) error {
 	defer cancelFunc()
 
 	var instanceID string
-	folder, _, instanceName, err := d.decodeMachineID(machineID)
+	instanceID, err := d.decodeMachineID(machineID)
+	// folder, _, instanceName, err := d.decodeMachineID(machineID)
 	// TODO: Remove migration from older Yandex.Cloud InstanceID-based MachineID
-	if errors.Is(err, unexpectedMachineIdErr) {
-		instanceID = machineID
-	} else if err != nil {
+	if err != nil {
 		return err
-	}
-
-	if len(instanceID) == 0 {
-		instance, err := FindInstanceByFolderAndName(ctx, d.svc, folder, instanceName)
-		if instance == nil {
-			klog.V(2).Infof("No machine matching the machineID %q found on the provider: %s", d.MachineID, err)
-			return nil
-		}
-		if err != nil {
-			return err
-		}
-
-		instanceID = instance.Id
 	}
 
 	_, _, err = waitForResult(ctx, d.svc, func() (*operation.Operation, error) {
@@ -315,23 +301,20 @@ func (d *YandexDriver) GetVMs(machineID string) (VMs, error) {
 				}
 			}
 			if matchedCluster && matchedRole {
-				listOfVMs[d.encodeMachineID(instance.FolderId, instance.ZoneId, instance.Name)] = instance.Name
+				listOfVMs[d.encodeMachineID(instance.Id)] = instance.Name
 			}
 		}
 	} else {
-		folder, _, instanceName, err := d.decodeMachineID(d.MachineID)
-		// TODO: Remove migration from older Yandex.Cloud InstanceID-based MachineID
-		if errors.Is(err, unexpectedMachineIdErr) {
-			listOfVMs[machineID] = d.MachineName
-			return listOfVMs, nil
-		} else if err != nil {
-			return nil, err
-		}
-
-		instance, err := FindInstanceByFolderAndName(ctx, d.svc, folder, instanceName)
+		instanceID, err := d.decodeMachineID(machineID)
 		if err != nil {
 			return nil, err
 		}
+
+		instance, err := d.svc.Compute().Instance().Get(ctx, &compute.GetInstanceRequest{InstanceId: instanceID})
+		if err != nil {
+			return nil, err
+		}
+
 		if instance != nil {
 			listOfVMs[machineID] = instance.Name
 		}
@@ -364,28 +347,6 @@ func (d *YandexDriver) GetUserData() string {
 //SetUserData set the used data whit which the VM will be booted
 func (d *YandexDriver) SetUserData(userData string) {
 	d.UserData = userData
-}
-
-// FindInstanceByFolderAndName searches for Instance with the specified folderID and instanceName.
-func FindInstanceByFolderAndName(ctx context.Context, sdk *ycsdk.SDK, folderID string, instanceName string) (*compute.Instance, error) {
-	result, err := sdk.Compute().Instance().List(ctx, &compute.ListInstancesRequest{
-		FolderId: folderID,
-		Filter:   fmt.Sprintf("name = \"%s\"", instanceName),
-		PageSize: 2,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	if len(result.Instances) > 1 {
-		return nil, fmt.Errorf("multiple instances found: folderID=%s, instanceName=%s", folderID, instanceName)
-	}
-
-	if result == nil || len(result.Instances) == 0 {
-		return nil, nil
-	}
-
-	return result.Instances[0], nil
 }
 
 func waitForResult(ctx context.Context, sdk *ycsdk.SDK, origFunc func() (*operation.Operation, error)) (proto.Message, *ycsdkoperation.Operation, error) {
