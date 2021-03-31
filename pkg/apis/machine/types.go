@@ -1292,11 +1292,12 @@ type YandexMachineClassList struct {
 }
 
 type YandexMachineClassSpec struct {
-	Labels     map[string]string
-	Metadata   map[string]string
-	RegionID   string
-	ZoneID     string
-	PlatformID string
+	Labels                        map[string]string
+	Metadata                      map[string]string
+	RegionID                      string
+	ZoneID                        string
+	PlatformID                    string
+	SoftwareAcceleratedNetworking bool
 
 	ResourcesSpec         YandexMachineClassSpecResourcesSpec
 	BootDiskSpec          YandexMachineClassSpecBootDiskSpec

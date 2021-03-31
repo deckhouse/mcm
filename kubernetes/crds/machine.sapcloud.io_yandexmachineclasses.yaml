@@ -114,6 +114,8 @@ spec:
                     name must be unique.
                   type: string
               type: object
+            softwareAcceleratedNetworking:
+              type: boolean
             zoneID:
               type: string
           type: object
