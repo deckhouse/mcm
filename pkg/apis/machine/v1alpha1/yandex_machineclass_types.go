@@ -63,11 +63,12 @@ type YandexMachineClassList struct {
 }
 
 type YandexMachineClassSpec struct {
-	Labels     map[string]string `json:"labels,omitempty"`
-	Metadata   map[string]string `json:"metadata,omitempty"`
-	RegionID   string            `json:"regionID,omitempty"`
-	ZoneID     string            `json:"zoneID,omitempty"`
-	PlatformID string            `json:"platformID,omitempty"`
+	Labels                        map[string]string `json:"labels,omitempty"`
+	Metadata                      map[string]string `json:"metadata,omitempty"`
+	RegionID                      string            `json:"regionID,omitempty"`
+	ZoneID                        string            `json:"zoneID,omitempty"`
+	PlatformID                    string            `json:"platformID,omitempty"`
+	SoftwareAcceleratedNetworking bool              `json:"softwareAcceleratedNetworking,omitempty"`
 
 	ResourcesSpec         YandexMachineClassSpecResourcesSpec           `json:"resourcesSpec,omitempty"`
 	BootDiskSpec          YandexMachineClassSpecBootDiskSpec            `json:"bootDiskSpec,omitempty"`

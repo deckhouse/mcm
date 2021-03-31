@@ -151,14 +151,21 @@ func (d *YandexDriver) Create() (string, string, error) {
 		})
 	}
 
+	var networkSettings *compute.NetworkSettings
+	if d.YandexMachinesClass.Spec.SoftwareAcceleratedNetworking {
+		networkSettings = &compute.NetworkSettings{Type: compute.NetworkSettings_SOFTWARE_ACCELERATED}
+	}
+
 	createInstanceParams := &compute.CreateInstanceRequest{
-		FolderId:   string(d.SecretData[v1alpha1.YandexFolderID]),
-		Name:       d.MachineName,
-		Hostname:   d.MachineName,
-		Labels:     d.YandexMachinesClass.Spec.Labels,
-		Metadata:   instanceMetadata,
-		ZoneId:     d.YandexMachinesClass.Spec.ZoneID,
-		PlatformId: d.YandexMachinesClass.Spec.PlatformID,
+		FolderId:        string(d.SecretData[v1alpha1.YandexFolderID]),
+		Name:            d.MachineName,
+		Hostname:        d.MachineName,
+		Labels:          d.YandexMachinesClass.Spec.Labels,
+		Metadata:        instanceMetadata,
+		ZoneId:          d.YandexMachinesClass.Spec.ZoneID,
+		PlatformId:      d.YandexMachinesClass.Spec.PlatformID,
+		NetworkSettings: networkSettings,
+
 		ResourcesSpec: &compute.ResourcesSpec{
 			Memory:       d.YandexMachinesClass.Spec.ResourcesSpec.Memory,
 			Cores:        d.YandexMachinesClass.Spec.ResourcesSpec.Cores,
@@ -301,6 +308,10 @@ func (d *YandexDriver) GetVMs(machineID string) (VMs, error) {
 				}
 			}
 			if matchedCluster && matchedRole {
+				err := d.restartPreemptibleInstance(ctx, instance)
+				if err != nil {
+					return nil, err
+				}
 				listOfVMs[d.encodeMachineID(instance.Id)] = instance.Name
 			}
 		}
@@ -316,6 +327,11 @@ func (d *YandexDriver) GetVMs(machineID string) (VMs, error) {
 		}
 
 		if instance != nil {
+			err := d.restartPreemptibleInstance(ctx, instance)
+			if err != nil {
+				return nil, err
+			}
+
 			listOfVMs[machineID] = instance.Name
 		}
 	}
@@ -347,6 +363,18 @@ func (d *YandexDriver) GetUserData() string {
 //SetUserData set the used data whit which the VM will be booted
 func (d *YandexDriver) SetUserData(userData string) {
 	d.UserData = userData
+}
+
+func (d *YandexDriver) restartPreemptibleInstance(ctx context.Context, instance *compute.Instance) error {
+	if instance.SchedulingPolicy.Preemptible && instance.Status == compute.Instance_STOPPED {
+		_, _, err := waitForResult(ctx, d.svc, func() (*operation.Operation, error) {
+			return d.svc.Compute().Instance().Start(ctx, &compute.StartInstanceRequest{InstanceId: instance.Id})
+		})
+
+		return err
+	}
+
+	return nil
 }
 
 func waitForResult(ctx context.Context, sdk *ycsdk.SDK, origFunc func() (*operation.Operation, error)) (proto.Message, *ycsdkoperation.Operation, error) {
