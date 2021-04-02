@@ -4224,9 +4224,9 @@ func schema_pkg_apis_machine_v1alpha1_YandexMachineClassSpec(ref common.Referenc
 							Format: "",
 						},
 					},
-					"softwareAcceleratedNetworking": {
+					"networkType": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"boolean"},
+							Type:   []string{"string"},
 							Format: "",
 						},
 					},

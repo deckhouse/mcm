@@ -152,7 +152,7 @@ func (d *YandexDriver) Create() (string, string, error) {
 	}
 
 	var networkSettings *compute.NetworkSettings
-	if d.YandexMachinesClass.Spec.SoftwareAcceleratedNetworking {
+	if d.YandexMachinesClass.Spec.NetworkType == "SOFTWARE_ACCELERATED" {
 		networkSettings = &compute.NetworkSettings{Type: compute.NetworkSettings_SOFTWARE_ACCELERATED}
 	}
 
