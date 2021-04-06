@@ -60,6 +60,19 @@ spec:
                 typeID:
                   type: string
               type: object
+            credentialsSecretRef:
+              description: SecretReference represents a Secret Reference. It has enough
+                information to retrieve secret in any namespace
+              properties:
+                name:
+                  description: Name is unique within a namespace to reference a secret
+                    resource.
+                  type: string
+                namespace:
+                  description: Namespace defines the space within which the secret
+                    name must be unique.
+                  type: string
+              type: object
             labels:
               additionalProperties:
                 type: string
@@ -77,6 +90,8 @@ spec:
                     type: string
                 type: object
               type: array
+            networkType:
+              type: string
             platformID:
               type: string
             regionID:
@@ -114,8 +129,6 @@ spec:
                     name must be unique.
                   type: string
               type: object
-            softwareAcceleratedNetworking:
-              type: boolean
             zoneID:
               type: string
           type: object

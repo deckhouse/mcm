@@ -3221,7 +3221,7 @@ func autoConvert_v1alpha1_YandexMachineClassSpec_To_machine_YandexMachineClassSp
 	out.RegionID = in.RegionID
 	out.ZoneID = in.ZoneID
 	out.PlatformID = in.PlatformID
-	out.SoftwareAcceleratedNetworking = in.SoftwareAcceleratedNetworking
+	out.NetworkType = in.NetworkType
 	if err := Convert_v1alpha1_YandexMachineClassSpecResourcesSpec_To_machine_YandexMachineClassSpecResourcesSpec(&in.ResourcesSpec, &out.ResourcesSpec, s); err != nil {
 		return err
 	}
@@ -3248,7 +3248,7 @@ func autoConvert_machine_YandexMachineClassSpec_To_v1alpha1_YandexMachineClassSp
 	out.RegionID = in.RegionID
 	out.ZoneID = in.ZoneID
 	out.PlatformID = in.PlatformID
-	out.SoftwareAcceleratedNetworking = in.SoftwareAcceleratedNetworking
+	out.NetworkType = in.NetworkType
 	if err := Convert_machine_YandexMachineClassSpecResourcesSpec_To_v1alpha1_YandexMachineClassSpecResourcesSpec(&in.ResourcesSpec, &out.ResourcesSpec, s); err != nil {
 		return err
 	}
