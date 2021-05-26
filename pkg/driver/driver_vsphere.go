@@ -851,7 +851,7 @@ func (d *VsphereDriver) GetVolNames(specs []corev1.PersistentVolumeSpec) ([]stri
 			// Not a CSI-managed volume
 			continue
 		}
-		if spec.CSI.Driver != "vsphere.csi.vmware.com" {
+		if spec.CSI.Driver != "vsphere.csi.vmware.com" && spec.CSI.Driver != "csi.vsphere.vmware.com" {
 			// Not a volume provisioned by vSphere CSI driver
 			continue
 		}
