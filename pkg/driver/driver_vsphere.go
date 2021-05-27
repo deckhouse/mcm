@@ -7,7 +7,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/vmware/govmomi/task"
 	"path"
 	"sort"
 	"strconv"
@@ -38,7 +37,6 @@ import (
 const (
 	tagCategoryCardinalitySingle   string = "SINGLE"
 	tagCategoryCardinalityMultiple string = "MULTIPLE"
-	hwVersion                             = 15 // recommended in https://cloud-provider-vsphere.sigs.k8s.io/tutorials/kubernetes-on-vsphere-with-kubeadm.html
 )
 
 type VsphereInfo struct {
@@ -556,11 +554,6 @@ func (d *VsphereDriver) Create() (string, string, error) {
 		return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
 	}
 
-	err = d.upgradeHardware(ctx, clonedVM, hwVersion)
-	if err != nil {
-		return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
-	}
-
 	powerOnVmTask, err := clonedVM.PowerOn(ctx)
 	if err != nil {
 		return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
@@ -572,35 +565,6 @@ func (d *VsphereDriver) Create() (string, string, error) {
 	}
 
 	return d.encodeMachineID(machineID), d.MachineName, nil
-}
-
-func (d *VsphereDriver) upgradeHardware(ctx context.Context, vm *object.VirtualMachine, version int) error {
-	if version > 0 {
-		// update hardware
-		version := fmt.Sprintf("vmx-%02d", hwVersion)
-		upgradeVmTask, err := vm.UpgradeVM(ctx, version)
-		if err != nil {
-			return err
-		}
-		err = upgradeVmTask.Wait(ctx)
-		if err != nil {
-			if isAlreadyUpgraded(err) {
-				klog.V(4).Infof("Already upgraded: %s", err)
-			} else {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
-func isAlreadyUpgraded(err error) bool {
-	if fault, ok := err.(task.Error); ok {
-		_, ok = fault.Fault().(*types.AlreadyUpgraded)
-		return ok
-	}
-
-	return false
 }
 
 func (d *VsphereDriver) Delete(machineID string) error {
