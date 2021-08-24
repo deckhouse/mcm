@@ -130,6 +130,8 @@ type SafetyOptions struct {
 	// MachineControllerFrozen indicates if the machine controller
 	// is frozen due to Unreachable APIServers
 	MachineControllerFrozen bool
+
+	DrainDelay metav1.Duration
 }
 
 // LeaderElectionConfiguration defines the configuration of leader election
