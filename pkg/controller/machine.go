@@ -104,7 +104,7 @@ func (c *controller) enqueueMachineAfter(obj interface{}, after time.Duration) {
 	machine := obj.(*v1alpha1.Machine)
 
 	switch machine.Spec.Class.Kind {
-	case AlicloudMachineClassKind, AWSMachineClassKind, AzureMachineClassKind, GCPMachineClassKind, OpenStackMachineClassKind, PacketMachineClassKind:
+	case AlicloudMachineClassKind, AWSMachineClassKind, AzureMachineClassKind, GCPMachineClassKind, OpenStackMachineClassKind, PacketMachineClassKind, VsphereMachineClassKind, YandexMachineClassKind:
 		// Checking if machineClass is to be processed by MCM, and then only enqueue the machine object
 		klog.V(4).Infof("Adding machine object to the queue %q after %s", key, after)
 		c.machineQueue.AddAfter(key, after)
@@ -206,6 +206,16 @@ func (c *controller) reconcileClusterMachine(machine *v1alpha1.Machine) error {
 	}
 
 	if machine.DeletionTimestamp != nil {
+		c.setExcludeLBLabel(machine)
+
+		if c.safetyOptions.DrainDelay.Duration != 0 {
+			if machine.DeletionTimestamp.Add(c.safetyOptions.DrainDelay.Duration).After(time.Now()) {
+				klog.Infof("drain delay of %q has not yet passed for machine %q", c.safetyOptions.DrainDelay.Duration.String(), machine.Name)
+				c.enqueueMachineAfter(machine, 15*time.Second)
+				return nil
+			}
+		}
+
 		// Processing of delete event
 		if err := c.machineDelete(machine, driver); err != nil {
 			c.enqueueMachineAfter(machine, MachineEnqueueRetryPeriod)
@@ -1041,6 +1051,27 @@ func (c *controller) updateMachineFinalizers(machine *v1alpha1.Machine, finalize
 		// Keep retrying until update goes through
 		klog.Warningf("Warning: Updated failed, retrying, error: %q", err)
 		c.updateMachineFinalizers(machine, finalizers)
+	}
+}
+
+func (c *controller) setExcludeLBLabel(machine *v1alpha1.Machine) {
+	// Get the latest version of the machine so that we can avoid conflicts
+	node, err := c.controlCoreClient.CoreV1().Nodes().Get(machine.Name, metav1.GetOptions{})
+	if err != nil {
+		return
+	}
+
+	clone := node.DeepCopy()
+	if clone.Labels == nil {
+		clone.Labels = map[string]string{}
+	}
+	clone.Labels["node.kubernetes.io/exclude-from-external-load-balancers"] = ""
+
+	_, err = c.controlCoreClient.CoreV1().Nodes().Update(clone)
+	if err != nil {
+		// Keep retrying until update goes through
+		klog.Warningf("Warning: Updated failed, retrying, error: %q", err)
+		c.setExcludeLBLabel(machine)
 	}
 }
 
