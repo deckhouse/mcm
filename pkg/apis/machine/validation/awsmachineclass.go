@@ -130,7 +130,7 @@ func validateBlockDevices(blockDevices []machine.AWSBlockDeviceMappingSpec, fldP
 	rootPartitionCount := 0
 	var deviceNames = make(map[string]int)
 
-	validVolumeTypes := []string{"gp2", "io1", "st1", "sc1", "standard"}
+	validVolumeTypes := []string{"gp3", "gp2", "io1", "st1", "sc1", "standard"}
 
 	// https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/device_naming.html
 	const dataDeviceNameFmt string = `/dev/(sd[a-z]|xvd[a-c][a-z]?)`
@@ -154,7 +154,7 @@ func validateBlockDevices(blockDevices []machine.AWSBlockDeviceMappingSpec, fldP
 		}
 
 		if !contains(validVolumeTypes, disk.Ebs.VolumeType) {
-			allErrs = append(allErrs, field.Required(idxPath.Child("ebs.volumeType"), "Please mention a valid ebs volume type:  gp2, io1, st1, sc1, or standard."))
+			allErrs = append(allErrs, field.Required(idxPath.Child("ebs.volumeType"), "Please mention a valid ebs volume type:  gp3, gp2, io1, st1, sc1, or standard."))
 		}
 
 		if disk.Ebs.VolumeSize <= 0 {
