@@ -192,7 +192,7 @@ var _ = Describe("AWSMachineClass Validation", func() {
 					Type:     "FieldValueRequired",
 					Field:    "spec.blockDevices[0].ebs.volumeType",
 					BadValue: "",
-					Detail:   "Please mention a valid ebs volume type:  gp2, io1, st1, sc1, or standard.",
+					Detail:   "Please mention a valid ebs volume type:  gp3, gp2, io1, st1, sc1, or standard.",
 				},
 				{
 					Type:     "FieldValueRequired",
@@ -375,7 +375,7 @@ var _ = Describe("AWSMachineClass Validation", func() {
 					Type:     "FieldValueRequired",
 					Field:    "spec.blockDevices[0].ebs.volumeType",
 					BadValue: "",
-					Detail:   "Please mention a valid ebs volume type:  gp2, io1, st1, sc1, or standard.",
+					Detail:   "Please mention a valid ebs volume type:  gp3, gp2, io1, st1, sc1, or standard.",
 				},
 			}
 			Expect(err).To(Equal(errExpected))
