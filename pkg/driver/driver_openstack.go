@@ -749,6 +749,7 @@ func resourceInstanceBlockDevicesV2(rootDiskSize int, imageID string) ([]bootfro
 		DeleteOnTermination: true,
 		SourceType:          "image",
 		DestinationType:     "volume",
+		VolumeType:          "SSD",
 	}
 	klog.V(2).Infof("[DEBUG] Block Device Options: %+v", blockDeviceOpts)
 	return blockDeviceOpts, nil
