@@ -747,7 +747,7 @@ func resourceInstanceBlockDevicesV2(rootDiskSize int, imageID string) ([]bootfro
 		VolumeSize:          rootDiskSize,
 		BootIndex:           0,
 		DeleteOnTermination: true,
-		SourceType:          "image",
+		SourceType:          "volume",
 		DestinationType:     "volume",
 		VolumeType:          "SSD",
 	}
