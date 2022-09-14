@@ -11,6 +11,7 @@ require (
 	github.com/aliyun/alibaba-cloud-sdk-go v0.0.0-20180828111155-cad214d7d71f
 	github.com/aws/aws-sdk-go v1.23.13
 	github.com/davecgh/go-spew v1.1.1
+	github.com/davecgh/go-xdr v0.0.0-20161123171359-e6a2ba005892 // indirect
 	github.com/emicklei/go-restful v2.9.6+incompatible // indirect
 	github.com/go-openapi/spec v0.19.2
 	github.com/golang/groupcache v0.0.0-20180513044358-24b0969c4cb7 // indirect
@@ -28,7 +29,7 @@ require (
 	github.com/prometheus/client_golang v0.9.2
 	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/spf13/pflag v1.0.3
-	github.com/vmware/govmomi v0.22.2
+	github.com/vmware/govmomi v0.29.0
 	github.com/yandex-cloud/go-genproto v0.0.0-20200330101522-37b51d1c4572
 	github.com/yandex-cloud/go-sdk v0.0.0-20200323080541-1b2fb4d2247e
 	golang.org/x/lint v0.0.0-20190313153728-d0100b6bd8b3
