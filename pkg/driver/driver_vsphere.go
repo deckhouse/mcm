@@ -33,7 +33,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-//noinspection GoUnusedConst
+// noinspection GoUnusedConst
 const (
 	tagCategoryCardinalitySingle   string = "SINGLE"
 	tagCategoryCardinalityMultiple string = "MULTIPLE"
@@ -108,28 +108,23 @@ func (d *VsphereDriver) Create() (string, string, error) {
 
 	client, restClient, logoutFunc, err := vsphereInfo.loginFunc(ctx)
 	if err != nil {
-		return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
+		return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to login: %s", err), sideEffectsPresent)
 	}
 	defer logoutFunc()
 
 	datacenter, err := vsphereInfo.tagManager.GetDcByRegion(ctx, client, restClient, d.VsphereMachineClass.Spec.Region)
 	if err != nil {
-		return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
+		return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to get DC by Region tag: %s", err), sideEffectsPresent)
 	}
 
 	cluster, err := vsphereInfo.tagManager.GetClusterByZone(ctx, client, restClient, d.VsphereMachineClass.Spec.Zone)
 	if err != nil {
-		return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
+		return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to get Cluster by Zone tag: %s", err), sideEffectsPresent)
 	}
 
 	clusterDrsEnabled, err := drsEnabled(ctx, cluster)
 	if err != nil {
-		return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
-	}
-
-	hosts, err := cluster.Hosts(ctx)
-	if err != nil {
-		return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
+		return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to check whether DRS is enabled: %s", err), sideEffectsPresent)
 	}
 
 	finder := find.NewFinder(client.Client, true)
@@ -137,32 +132,33 @@ func (d *VsphereDriver) Create() (string, string, error) {
 	// find resources by their paths
 	vmFolder, err := finder.Folder(ctx, path.Join("/", datacenter.Name(), "vm", d.VsphereMachineClass.Spec.VirtualMachineFolder))
 	if err != nil {
-		return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
+		return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to find VM folder: %s", err), sideEffectsPresent)
 	}
 
 	var resourcePool *object.ResourcePool
 	if len(d.VsphereMachineClass.Spec.ResourcePool) != 0 {
 		resourcePool, err = finder.ResourcePool(ctx, path.Join(cluster.InventoryPath, "Resources", d.VsphereMachineClass.Spec.ResourcePool))
 		if err != nil {
-			return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
+			return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to find ResourcePool: %s", err), sideEffectsPresent)
 		}
 	} else {
 		resourcePool, err = finder.ResourcePool(ctx, path.Join(cluster.InventoryPath, "Resources"))
 		if err != nil {
-			return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
+			return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to find default ResourcePool \"Resources\": %s", err), sideEffectsPresent)
 		}
 	}
 
 	mainNetwork, err := finder.Network(ctx, path.Join("/", datacenter.Name(), "network", d.VsphereMachineClass.Spec.MainNetwork))
 	if err != nil {
-		return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
+		return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to find MainNetwork: %s", err), sideEffectsPresent)
 	}
 
 	var additionalNetworks []object.NetworkReference
 	for _, addNetPath := range d.VsphereMachineClass.Spec.AdditionalNetworks {
-		addNet, err := finder.Network(ctx, path.Join("/", datacenter.Name(), "network", addNetPath))
+		networkPath := path.Join("/", datacenter.Name(), "network", addNetPath)
+		addNet, err := finder.Network(ctx, networkPath)
 		if err != nil {
-			return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
+			return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to find additional network %q: %s", networkPath, err), sideEffectsPresent)
 		}
 
 		additionalNetworks = append(additionalNetworks, addNet)
@@ -188,33 +184,33 @@ func (d *VsphereDriver) Create() (string, string, error) {
 				return d.encodeMachineID(machineID), "", fmt.Errorf("even the strongest magic incantation failed, all hope is lost: %s", NewCreateFailErr(err, sideEffectsPresent))
 			}
 		} else if err != nil {
-			return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
+			return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to find datastore %q: %s", dsPath, err), sideEffectsPresent)
 		}
 	}
 
 	vmTemplate, err := finder.VirtualMachine(ctx, path.Join("/", datacenter.Name(), "vm", d.VsphereMachineClass.Spec.Template))
 	if err != nil {
-		return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
+		return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to find VM template: %s", err), sideEffectsPresent)
 	}
 
 	err = vsphereInfo.tagManager.EnsureTagCategory(ctx, restClient, string(d.SecretData[v1alpha1.VsphereClusterNameTagCategory]), "", tagCategoryCardinalitySingle, []string{"VirtualMachine"})
 	if err != nil {
-		return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
+		return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to ensure cluster name tag category: %s", err), sideEffectsPresent)
 	}
 
 	err = vsphereInfo.tagManager.EnsureTagCategory(ctx, restClient, string(d.SecretData[v1alpha1.VsphereNodeRoleTagCategory]), "", tagCategoryCardinalitySingle, []string{"VirtualMachine"})
 	if err != nil {
-		return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
+		return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to ensure node role tag category: %s", err), sideEffectsPresent)
 	}
 
 	err = vsphereInfo.tagManager.EnsureTag(ctx, restClient, d.VsphereMachineClass.Spec.ClusterNameTag, string(d.SecretData[v1alpha1.VsphereClusterNameTagCategory]), "")
 	if err != nil {
-		return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
+		return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to ensure cluster name tag category: %s", err), sideEffectsPresent)
 	}
 
 	err = vsphereInfo.tagManager.EnsureTag(ctx, restClient, d.VsphereMachineClass.Spec.NodeRoleTag, string(d.SecretData[v1alpha1.VsphereNodeRoleTagCategory]), "")
 	if err != nil {
-		return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
+		return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to ensure node role tag category: %s", err), sideEffectsPresent)
 	}
 
 	var oldNetworkDevicesConfigSpecs []types.BaseVirtualDeviceConfigSpec
@@ -227,7 +223,7 @@ func (d *VsphereDriver) Create() (string, string, error) {
 
 		templateDeviceList, err := vmTemplate.Device(ctx)
 		if err != nil {
-			return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
+			return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to get VM template devices: %s", err), sideEffectsPresent)
 		}
 
 		var oldEthernetCardsList object.VirtualDeviceList
@@ -240,22 +236,22 @@ func (d *VsphereDriver) Create() (string, string, error) {
 		var newEthernetCardsList object.VirtualDeviceList
 		networkBackingInfo, err := mainNetwork.EthernetCardBackingInfo(ctx)
 		if err != nil {
-			return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
+			return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to get VM template's mainNetwork card backing info: %s", err), sideEffectsPresent)
 		}
 		mainEthernetCard, err := templateDeviceList.CreateEthernetCard("vmxnet3", networkBackingInfo)
 		if err != nil {
-			return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
+			return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to add main ethernet card to VM template devices: %s", err), sideEffectsPresent)
 		}
 		newEthernetCardsList = append(newEthernetCardsList, mainEthernetCard)
 
 		for _, addNet := range additionalNetworks {
 			backing, err := addNet.EthernetCardBackingInfo(ctx)
 			if err != nil {
-				return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
+				return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to get VM template's additional network card backing info: %s", err), sideEffectsPresent)
 			}
 			ethernetCard, err := templateDeviceList.CreateEthernetCard("vmxnet3", backing)
 			if err != nil {
-				return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
+				return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to add additional ethernet card to VM template devices: %s", err), sideEffectsPresent)
 			}
 			newEthernetCardsList = append(newEthernetCardsList, ethernetCard)
 		}
@@ -269,12 +265,12 @@ func (d *VsphereDriver) Create() (string, string, error) {
 
 		oldEthernetConfigSpec, err := oldEthernetCardsList.ConfigSpec(types.VirtualDeviceConfigSpecOperationRemove)
 		if err != nil {
-			return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
+			return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to delete old ethernet cards from VM template devices: %s", err), sideEffectsPresent)
 		}
 
 		newEthernetConfigSpec, err := newEthernetCardsList.ConfigSpec(types.VirtualDeviceConfigSpecOperationAdd)
 		if err != nil {
-			return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
+			return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to add new ethernet cards to VM template devices: %s", err), sideEffectsPresent)
 		}
 
 		oldNetworkDevicesConfigSpecs = append(oldNetworkDevicesConfigSpecs, oldEthernetConfigSpec...)
@@ -293,9 +289,14 @@ func (d *VsphereDriver) Create() (string, string, error) {
 			PowerOn: false,
 		}
 		if !clusterDrsEnabled {
+			hosts, err := cluster.Hosts(ctx)
+			if err != nil {
+				return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to get cluster Hosts list: %s", err), sideEffectsPresent)
+			}
+
 			host, err := d.selectHost(ctx, client, restClient, d.VsphereMachineClass.Spec.ClusterNameTag, d.VsphereMachineClass.Spec.NodeRoleTag, hosts)
 			if err != nil {
-				return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
+				return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to select proper host on non-DSR-enabled cluster: %s", err), sideEffectsPresent)
 			}
 			hostRef := host.Reference()
 
@@ -317,7 +318,7 @@ func (d *VsphereDriver) Create() (string, string, error) {
 				CloneSpec: cloneSpec,
 			})
 			if err != nil {
-				return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
+				return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to select recommended datastore: %s", err), sideEffectsPresent)
 			}
 			var recommendationKeys []string
 			for _, recommendation := range recommendedDatastores.Recommendations {
@@ -326,12 +327,12 @@ func (d *VsphereDriver) Create() (string, string, error) {
 
 			recommendTask, err := srm.ApplyStorageDrsRecommendation(ctx, recommendationKeys)
 			if err != nil {
-				return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
+				return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to create task to apply storage DRS recommendations: %s", err), sideEffectsPresent)
 			}
 
 			recommendTaskResult, err := recommendTask.WaitForResult(ctx)
 			if err != nil {
-				return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
+				return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to apply storage DRS recommendations: %s", err), sideEffectsPresent)
 			}
 
 			clonedVM = object.NewVirtualMachine(client.Client, *recommendTaskResult.Result.(types.ApplyStorageRecommendationResult).Vm)
@@ -341,12 +342,12 @@ func (d *VsphereDriver) Create() (string, string, error) {
 
 			cloneTask, err := vmTemplate.Clone(ctx, vmFolder, d.MachineName, *cloneSpec)
 			if err != nil {
-				return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
+				return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to create clone VM task: %s", err), sideEffectsPresent)
 			}
 
 			cloneTaskResult, err := cloneTask.WaitForResult(ctx)
 			if err != nil {
-				return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
+				return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed clone VM: %s", err), sideEffectsPresent)
 			}
 
 			clonedVM = object.NewVirtualMachine(client.Client, cloneTaskResult.Result.(types.ManagedObjectReference))
@@ -360,12 +361,12 @@ func (d *VsphereDriver) Create() (string, string, error) {
 
 	err = vsphereInfo.tagManager.EnsureAttachedTagToObject(ctx, restClient, d.VsphereMachineClass.Spec.ClusterNameTag, string(d.SecretData[v1alpha1.VsphereClusterNameTagCategory]), clonedVM.Reference())
 	if err != nil {
-		return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
+		return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to ensure cluster name tag attachment to VM: %s", err), sideEffectsPresent)
 	}
 
 	err = vsphereInfo.tagManager.EnsureAttachedTagToObject(ctx, restClient, d.VsphereMachineClass.Spec.NodeRoleTag, string(d.SecretData[v1alpha1.VsphereNodeRoleTagCategory]), clonedVM.Reference())
 	if err != nil {
-		return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
+		return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to ensure node role tag attachment to VM: %s", err), sideEffectsPresent)
 	}
 
 	// fill up the extraConfig field of a new VM
@@ -381,7 +382,7 @@ func (d *VsphereDriver) Create() (string, string, error) {
 		},
 	)
 	if err != nil {
-		return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
+		return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to marshal cloud init metadata to JSON: %s", err), sideEffectsPresent)
 	}
 
 	var options []*types.OptionValue
@@ -456,7 +457,7 @@ func (d *VsphereDriver) Create() (string, string, error) {
 
 	devices, err := clonedVM.Device(ctx)
 	if err != nil {
-		return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
+		return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to get cloned VM's devices: %s", err), sideEffectsPresent)
 	}
 
 	var rootDisk *types.VirtualDisk
@@ -523,45 +524,45 @@ func (d *VsphereDriver) Create() (string, string, error) {
 	// power off the VM (if it isn't) before reconfiguring it
 	vmPowerState, err := clonedVM.PowerState(ctx)
 	if err != nil {
-		return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
+		return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to get power state of a cloned VM: %s", err), sideEffectsPresent)
 	}
 
 	if vmPowerState != types.VirtualMachinePowerStatePoweredOff {
 		vmPowerOffTask, err := clonedVM.PowerOff(ctx)
 		if err != nil {
-			return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
+			return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to create power off cloned VM task: %s", err), sideEffectsPresent)
 		}
 
 		err = vmPowerOffTask.Wait(ctx)
 		if err != nil {
-			return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
+			return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to power off VM: %s", err), sideEffectsPresent)
 		}
 
 		timeout, _ := context.WithTimeout(ctx, 30*time.Second)
 		err = clonedVM.WaitForPowerState(timeout, types.VirtualMachinePowerStatePoweredOff)
 		if err != nil {
-			return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
+			return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to wait for VM's powered off state: %s", err), sideEffectsPresent)
 		}
 	}
 
 	reconfigureClonedVmTask, err := clonedVM.Reconfigure(ctx, configSpec)
 	if err != nil {
-		return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
+		return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to create reconfigure cloned VM task: %s", err), sideEffectsPresent)
 	}
 
 	err = reconfigureClonedVmTask.Wait(ctx)
 	if err != nil {
-		return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
+		return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to reconfigure cloned VM: %s", err), sideEffectsPresent)
 	}
 
 	powerOnVmTask, err := clonedVM.PowerOn(ctx)
 	if err != nil {
-		return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
+		return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to create power on cloned VM task: %s", err), sideEffectsPresent)
 	}
 
 	err = powerOnVmTask.Wait(ctx)
 	if err != nil {
-		return d.encodeMachineID(machineID), "", NewCreateFailErr(err, sideEffectsPresent)
+		return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to power on cloned VM: %s", err), sideEffectsPresent)
 	}
 
 	return d.encodeMachineID(machineID), d.MachineName, nil
@@ -825,12 +826,12 @@ func (d *VsphereDriver) GetVolNames(specs []corev1.PersistentVolumeSpec) ([]stri
 	return names, nil
 }
 
-//GetUserData return the used data whit which the VM will be booted
+// GetUserData return the used data whit which the VM will be booted
 func (d *VsphereDriver) GetUserData() string {
 	return d.UserData
 }
 
-//SetUserData set the used data whit which the VM will be booted
+// SetUserData set the used data whit which the VM will be booted
 func (d *VsphereDriver) SetUserData(userData string) {
 	d.UserData = userData
 }
