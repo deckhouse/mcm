@@ -538,7 +538,8 @@ func (d *VsphereDriver) Create() (string, string, error) {
 			return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to power off VM: %s", err), sideEffectsPresent)
 		}
 
-		timeout, _ := context.WithTimeout(ctx, 30*time.Second)
+		timeout, cancel := context.WithTimeout(ctx, 30*time.Second)
+		defer cancel()
 		err = clonedVM.WaitForPowerState(timeout, types.VirtualMachinePowerStatePoweredOff)
 		if err != nil {
 			return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to wait for VM's powered off state: %s", err), sideEffectsPresent)
@@ -574,13 +575,13 @@ func (d *VsphereDriver) Delete(machineID string) error {
 
 	vsphereClient, restClient, logoutFunc, err := vsphereInfo.loginFunc(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to login to API: %s", err)
 	}
 	defer logoutFunc()
 
 	datacenter, err := vsphereInfo.tagManager.GetDcByRegion(ctx, vsphereClient, restClient, d.VsphereMachineClass.Spec.Region)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get DC by Region: %s", err)
 	}
 
 	machineID = d.decodeMachineID(machineID)
@@ -588,14 +589,14 @@ func (d *VsphereDriver) Delete(machineID string) error {
 	finder := find.NewFinder(vsphereClient.Client, false)
 	vmFolder, err := finder.Folder(ctx, path.Join("/", datacenter.Name(), "vm", d.VsphereMachineClass.Spec.VirtualMachineFolder))
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get VM folder: %s", err)
 	}
 	folderRef := vmFolder.Reference()
 
 	viewManager := view.NewManager(vsphereClient.Client)
 	vmView, err := viewManager.CreateContainerView(ctx, folderRef, []string{"VirtualMachine"}, true)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create container view for VirtualMachine object: %s", err)
 	}
 	defer vmView.Destroy(ctx)
 
@@ -604,7 +605,7 @@ func (d *VsphereDriver) Delete(machineID string) error {
 	err = vmView.RetrieveWithFilter(ctx, []string{"VirtualMachine"}, []string{"config.uuid", "config.name"}, &vms, property.Filter{"config.uuid": machineID})
 	// TODO: Upstream proper error handling (https://github.com/vmware/govmomi/property/collector.go:133) to skip this anti-pattern
 	if err != nil && err.Error() != "object references is empty" {
-		return err
+		return fmt.Errorf("failed to get VirtualMachine from ContainerView: %s", err)
 	}
 
 	if len(vms) == 0 {
@@ -620,31 +621,32 @@ func (d *VsphereDriver) Delete(machineID string) error {
 
 	vmPowerState, err := vmObject.PowerState(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get VM PowerState: %s", err)
 	}
 
 	if vmPowerState != types.VirtualMachinePowerStatePoweredOff {
 		vmPowerOffTask, err := vmObject.PowerOff(ctx)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to create vmPowerOffTask: %s", err)
 		}
 
 		err = vmPowerOffTask.Wait(ctx)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to Wait on vmPowerOffTask: %s", err)
 		}
 
-		timeout, _ := context.WithTimeout(ctx, 30*time.Second)
+		timeout, cancel := context.WithTimeout(ctx, 30*time.Second)
+		defer cancel()
 		err = vmObject.WaitForPowerState(timeout, types.VirtualMachinePowerStatePoweredOff)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to power off VM: %s", err)
 		}
 	}
 
 	// destroy only first disk, detach everything else
 	deviceList, err := vmObject.Device(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get DeviceList from VM: %s", err)
 	}
 
 	var disksSansFirst object.VirtualDeviceList
@@ -667,7 +669,7 @@ func (d *VsphereDriver) Delete(machineID string) error {
 	if len(disksSansFirst) > 0 {
 		deviceConfigSpec, err := disksSansFirst.ConfigSpec(types.VirtualDeviceConfigSpecOperationRemove)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to create device config spec: %s", err)
 		}
 
 		for i, deviceChange := range deviceConfigSpec {
@@ -681,23 +683,23 @@ func (d *VsphereDriver) Delete(machineID string) error {
 
 		reconfigureClonedVmTask, err := vmObject.Reconfigure(ctx, configSpec)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to create vm reconfigure task: %s", err)
 		}
 
 		err = reconfigureClonedVmTask.Wait(ctx)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to wait on vm reconfigure task: %s", err)
 		}
 	}
 
 	vmDestroyTask, err := vmObject.Destroy(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create destroy vm task: %s", err)
 	}
 
 	err = vmDestroyTask.Wait(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to wait on destroy vm task: %s", err)
 	}
 
 	return nil
@@ -713,13 +715,13 @@ func (d *VsphereDriver) GetVMs(machineID string) (VMs, error) {
 
 	client, restClient, logoutFunc, err := vsphereInfo.loginFunc(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to login to API: %s", err)
 	}
 	defer logoutFunc()
 
 	datacenter, err := vsphereInfo.tagManager.GetDcByRegion(ctx, client, restClient, d.VsphereMachineClass.Spec.Region)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get DC by Region: %s", err)
 	}
 
 	listOfVMs := make(map[string]string)
@@ -728,14 +730,14 @@ func (d *VsphereDriver) GetVMs(machineID string) (VMs, error) {
 
 	vmFolder, err := finder.Folder(ctx, path.Join("/", datacenter.Name(), "vm", d.VsphereMachineClass.Spec.VirtualMachineFolder))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get vmFolder: %s", err)
 	}
 	folderRef := vmFolder.Reference()
 
 	viewManager := view.NewManager(client.Client)
 	vmView, err := viewManager.CreateContainerView(ctx, folderRef, []string{"VirtualMachine"}, true)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create container view: %s", err)
 	}
 	defer vmView.Destroy(ctx)
 
@@ -753,7 +755,7 @@ func (d *VsphereDriver) GetVMs(machineID string) (VMs, error) {
 			klog.Warningf("Can't get objects by tag %q, skipping VM listing: %s", clusterName, err)
 			return listOfVMs, nil
 		} else if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to get VMs by cluster name: %s", err)
 		}
 
 		// TODO: remove ugliness, restore type-safe cleanliness
@@ -762,7 +764,7 @@ func (d *VsphereDriver) GetVMs(machineID string) (VMs, error) {
 			klog.Warningf("Can't get objects by tag %q, skipping VM listing: %s", nodeRole, err)
 			return listOfVMs, nil
 		} else if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to get VMs by node role: %s", err)
 		}
 
 		clusterNodeIntersection := intersectMOReferences(vmsByClusterName, vmsByNodeRole)
@@ -770,7 +772,7 @@ func (d *VsphereDriver) GetVMs(machineID string) (VMs, error) {
 		var vms []mo.VirtualMachine
 		err = vmView.Retrieve(ctx, []string{"VirtualMachine"}, []string{}, &vms)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to retrieve VirtualMachine from View: %s", err)
 		}
 
 		var vmObjectRefs []object.Reference
@@ -784,7 +786,7 @@ func (d *VsphereDriver) GetVMs(machineID string) (VMs, error) {
 			var vmMO mo.VirtualMachine
 			err := vmObject.Properties(ctx, vmObject.Reference(), []string{"config"}, &vmMO)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("failed to get config field from VM properties: %s", err)
 			}
 			listOfVMs[d.encodeMachineID(vmMO.Config.Uuid)] = vmMO.Config.Name
 		}
@@ -795,7 +797,7 @@ func (d *VsphereDriver) GetVMs(machineID string) (VMs, error) {
 		var vms []mo.VirtualMachine
 		err = vmView.RetrieveWithFilter(ctx, []string{"VirtualMachine"}, []string{"config.uuid", "config.name"}, &vms, property.Filter{"config.uuid": machineID})
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to get uuid field from VM properted: %s", err)
 		}
 
 		if len(vms) != 1 {
