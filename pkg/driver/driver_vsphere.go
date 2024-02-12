@@ -186,6 +186,9 @@ func (d *VsphereDriver) Create() (string, string, error) {
 		} else if err != nil {
 			return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to find datastore %q: %s", dsPath, err), sideEffectsPresent)
 		}
+	} else if err != nil {
+		klog.V(1).Infof("Getting DatastoreCluster by path %q returns error %v", dsPath, err)
+		return d.encodeMachineID(machineID), "", NewCreateFailErr(fmt.Errorf("failed to find datastore %q: %s", dsPath, err), sideEffectsPresent)
 	}
 
 	vmTemplate, err := finder.VirtualMachine(ctx, path.Join("/", datacenter.Name(), "vm", d.VsphereMachineClass.Spec.Template))
