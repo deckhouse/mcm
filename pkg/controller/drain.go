@@ -255,7 +255,7 @@ func (o *DrainOptions) daemonsetFilter(pod api.Pod) (bool, *warning, *fatal) {
 	// management resource - including DaemonSet - is not found).
 	// Such pods will be deleted if --force is used.
 	controllerRef := o.getPodController(pod)
-	if controllerRef == nil || controllerRef.Kind != "DaemonSet" {
+	if controllerRef == nil || controllerRef.Kind != "DaemonSet" || (controllerRef.Kind == "DaemonSet" && controllerRef.APIVersion == "apps.kruise.io/v1alpha1") {
 		return true, nil, nil
 	}
 	if !o.IgnoreDaemonsets {
