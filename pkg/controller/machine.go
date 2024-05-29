@@ -206,8 +206,6 @@ func (c *controller) reconcileClusterMachine(machine *v1alpha1.Machine) error {
 	}
 
 	if machine.DeletionTimestamp != nil {
-		c.setExcludeLBLabel(machine)
-
 		if c.safetyOptions.DrainDelay.Duration != 0 {
 			if machine.DeletionTimestamp.Add(c.safetyOptions.DrainDelay.Duration).After(time.Now()) {
 				klog.Infof("drain delay of %q has not yet passed for machine %q", c.safetyOptions.DrainDelay.Duration.String(), machine.Name)
@@ -215,6 +213,9 @@ func (c *controller) reconcileClusterMachine(machine *v1alpha1.Machine) error {
 				return nil
 			}
 		}
+
+		// removing the machine from balancing
+		c.setExcludeLBLabel(machine)
 
 		// Processing of delete event
 		if err := c.machineDelete(machine, driver); err != nil {
