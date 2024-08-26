@@ -7,7 +7,7 @@ COPY . .
 RUN .ci/build
 
 #############      base                                     #############
-FROM eu.gcr.io/gardener-project/3rd/alpine:3.12.1 as base
+FROM eu.gcr.io/gardener-project/3rd/alpine:3.18.4@sha256:eece025e432126ce23f223450a0326fbebde39cdf496a85d8c016293fc851978 as base
 
 RUN apk add --update bash curl tzdata
 WORKDIR /
