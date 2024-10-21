@@ -58,8 +58,8 @@ const (
 )
 
 /*
-	SECTION
-	Machine controller - Machine add, update, delete watches
+SECTION
+Machine controller - Machine add, update, delete watches
 */
 func (c *controller) addMachine(obj interface{}) {
 	klog.V(4).Infof("Adding machine object")
@@ -247,8 +247,8 @@ func (c *controller) reconcileClusterMachine(machine *v1alpha1.Machine) error {
 }
 
 /*
-	SECTION
-	Machine controller - nodeToMachine
+SECTION
+Machine controller - nodeToMachine
 */
 func (c *controller) addNodeToMachine(obj interface{}) {
 	node := obj.(*corev1.Node)
@@ -515,11 +515,15 @@ func (c *controller) machineCreate(machine *v1alpha1.Machine, driver driver.Driv
 			actualProviderID = providerID
 		}
 	}
+	var timeoutActive bool
 	if actualProviderID == "" {
 		actualProviderID, nodeName, err = driver.Create()
 		var e drivers.CreateError
 		if errors.As(err, &e) && e.HasSideEffects() && actualProviderID != "" {
 			klog.Errorf("Side-effects left, applying machineID %q to Machine object", actualProviderID)
+
+			// Without this, the machine object will be stuck in a CrashLoopBackOff state forever
+			timeoutActive = true
 
 			for {
 				machineName := machine.Name
@@ -555,7 +559,7 @@ func (c *controller) machineCreate(machine *v1alpha1.Machine, driver driver.Driv
 		}
 		currentStatus := v1alpha1.CurrentStatus{
 			Phase:          v1alpha1.MachineCrashLoopBackOff,
-			TimeoutActive:  false,
+			TimeoutActive:  timeoutActive,
 			LastUpdateTime: metav1.Now(),
 		}
 		c.updateMachineStatus(machine, lastOperation, currentStatus)
@@ -1100,8 +1104,8 @@ func (c *controller) deleteMachineFinalizers(machine *v1alpha1.Machine) {
 }
 
 /*
-	SECTION
-	Helper Functions
+SECTION
+Helper Functions
 */
 func (c *controller) isHealthy(machine *v1alpha1.Machine) bool {
 	numOfConditions := len(machine.Status.Conditions)
