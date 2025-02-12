@@ -24,7 +24,7 @@ require (
 	github.com/yandex-cloud/go-genproto v0.0.0-20200330101522-37b51d1c4572
 	github.com/yandex-cloud/go-sdk v0.0.0-20200323080541-1b2fb4d2247e
 	golang.org/x/lint v0.0.0-20190313153728-d0100b6bd8b3
-	golang.org/x/net v0.26.0
+	golang.org/x/net v0.33.0
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	google.golang.org/api v0.4.0
 	google.golang.org/grpc v1.28.0
@@ -79,11 +79,11 @@ require (
 	github.com/rogpeppe/go-internal v1.13.1 // indirect
 	github.com/satori/go.uuid v1.2.0 // indirect
 	go.opencensus.io v0.21.0 // indirect
-	golang.org/x/crypto v0.24.0 // indirect
+	golang.org/x/crypto v0.31.0 // indirect
 	golang.org/x/mod v0.18.0 // indirect
-	golang.org/x/sys v0.21.0 // indirect
-	golang.org/x/term v0.21.0 // indirect
-	golang.org/x/text v0.16.0 // indirect
+	golang.org/x/sys v0.28.0 // indirect
+	golang.org/x/term v0.27.0 // indirect
+	golang.org/x/text v0.21.0 // indirect
 	golang.org/x/time v0.0.0-20181108054448-85acf8d2951c // indirect
 	golang.org/x/tools v0.22.0 // indirect
 	gonum.org/v1/gonum v0.0.0-20190331200053-3d26580ed485 // indirect
@@ -92,7 +92,7 @@ require (
 	gopkg.in/fsnotify.v1 v1.4.7 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
-	gopkg.in/yaml.v2 v2.2.7 // indirect
+	gopkg.in/yaml.v2 v2.2.8 // indirect
 	k8s.io/gengo v0.0.0-20190822140433-26a664648505 // indirect
 	sigs.k8s.io/yaml v1.1.0 // indirect
 )
