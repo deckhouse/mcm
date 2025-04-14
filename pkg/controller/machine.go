@@ -465,6 +465,9 @@ func (c *controller) machineCreate(machine *v1alpha1.Machine, driver driver.Driv
 	c.updateMachineStatus(machine, lastOperation, currentStatus)
 
 	var actualProviderID, nodeName string
+	for key, value := range machine.Spec.NodeTemplateSpec.Labels {
+		klog.V(2).Infof("Label Key: %s, Value: %s\n", key, value)
+	}
 	err := c.addBootstrapTokenToUserData(machine.ObjectMeta.Labels, machine.Name, driver)
 	if err != nil {
 		klog.Errorf("Error while creating bootstrap token for machine %s: %s", machine.Name, err.Error())
