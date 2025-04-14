@@ -38,12 +38,27 @@ import (
 )
 
 const placeholder = "<<BOOTSTRAP_TOKEN>>"
+const maxRetriesGetBootstrapToken = 5
+const retryIntervalBootstrapToken = 3 * time.Second
 
 func (c *controller) addBootstrapTokenToUserData(machineLabels map[string]string, machineName string, driver driver.Driver) error {
 	userData := driver.GetUserData()
 	klog.V(4).Infof("Creating bootstrap token!")
-	bootstrapTokenSecret, err := c.getBootstrapTokenOrCreateIfNotExist(machineLabels, machineName)
+	var bootstrapTokenSecret *v1.Secret
+	var err error
+	for attempt := 1; attempt <= maxRetriesGetBootstrapToken; attempt++ {
+		bootstrapTokenSecret, err = c.getBootstrapTokenOrCreateIfNotExist(machineLabels, machineName)
+		if err == nil {
+			break
+		}
+
+		klog.Warningf("attempt %d/%d: failed to get or create bootstrap token: %v", attempt, maxRetriesGetBootstrapToken, err)
+		if attempt < maxRetriesGetBootstrapToken {
+			time.Sleep(retryIntervalBootstrapToken)
+		}
+	}
 	if err != nil {
+		klog.Errorf("all %d attempts failed to get or create bootstrap token: %v", maxRetriesGetBootstrapToken, err)
 		return err
 	}
 
@@ -61,7 +76,7 @@ func (c *controller) addBootstrapTokenToUserData(machineLabels map[string]string
 func (c *controller) getBootstrapTokenOrCreateIfNotExist(machineLabels map[string]string, machineName string) (secret *v1.Secret, err error) {
 	value, ok := machineLabels["node.deckhouse.io/group"]
 	if !ok || value == "" {
-		klog.Warningf("failed to get nodegroup name from spec node.deckhouse.io/group of machine: '%s'\nCreating bootstrap token from MCM.", machineName)
+		klog.Warningf("failed to get nodegroup name from spec node.deckhouse.io/group of machine: '%s'\nCreating bootstrap token by MCM!", machineName)
 		mcmToken, err := c.createBootstrapToken(machineName)
 		if err != nil {
 			return nil, err
@@ -73,7 +88,7 @@ func (c *controller) getBootstrapTokenOrCreateIfNotExist(machineLabels map[strin
 		LabelSelector: labelSelector,
 	})
 	if err != nil {
-		klog.Warningf("failed to list secrets in namespace kube-system created by node-manager: '%v'\nCreating bootstrap token from MCM.", err)
+		klog.Warningf("failed to list secrets in namespace kube-system created by node-manager: '%v'\nCreating bootstrap token by MCM!", err)
 		mcmToken, err := c.createBootstrapToken(machineName)
 		if err != nil {
 			return nil, err
@@ -94,7 +109,7 @@ func (c *controller) getBootstrapTokenOrCreateIfNotExist(machineLabels map[strin
 		})
 		return filteredSecrets[0], nil
 	}
-	klog.Warningf("failed to get bootstrap token created by node-manager\nCreating bootstrap token from MCM.")
+	klog.Warningf("failed to get bootstrap token created by node-manager\nCreating bootstrap token from MCM!")
 	mcmToken, err := c.createBootstrapToken(machineName)
 	if err != nil {
 		return nil, err
