@@ -59,20 +59,26 @@ func (c *controller) addBootstrapTokenToUserData(machineLabels map[string]string
 }
 
 func (c *controller) getBootstrapTokenOrCreateIfNotExist(machineLabels map[string]string, machineName string) (secret *v1.Secret, err error) {
-	value, ok := machineLabels["instance-group"]
+	value, ok := machineLabels["node.deckhouse.io/group"]
 	if !ok || value == "" {
-		return nil, fmt.Errorf("missing instance-group label from machine: '%v'", machineName)
+		klog.Warningf("failed to get nodegroup name from spec node.deckhouse.io/group of machine: '%s'\nCreating bootstrap token from MCM.", machineName)
+		mcmToken, err := c.createBootstrapToken(machineName)
+		if err != nil {
+			return nil, err
+		}
+		return mcmToken, nil
 	}
-	octets := strings.Split(value, "-")
-	if len(octets) == 0 {
-		return nil, fmt.Errorf("failed to get nodegroup name from machine: '%v'", machineName)
-	}
-	labelSelector := fmt.Sprintf("node-manager.deckhouse.io/node-group=%s", octets[0])
+	labelSelector := fmt.Sprintf("node-manager.deckhouse.io/node-group=%s", value)
 	secretListNodeManager, err := c.targetCoreClient.CoreV1().Secrets(metav1.NamespaceSystem).List(metav1.ListOptions{
 		LabelSelector: labelSelector,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to list secrets in namespace kube-system created by node-manager: %v", err)
+		klog.Warningf("failed to list secrets in namespace kube-system created by node-manager: '%v'\nCreating bootstrap token from MCM.", err)
+		mcmToken, err := c.createBootstrapToken(machineName)
+		if err != nil {
+			return nil, err
+		}
+		return mcmToken, nil
 	}
 	if len(secretListNodeManager.Items) != 0 {
 		var filteredSecrets []*v1.Secret
@@ -88,6 +94,15 @@ func (c *controller) getBootstrapTokenOrCreateIfNotExist(machineLabels map[strin
 		})
 		return filteredSecrets[0], nil
 	}
+	klog.Warningf("failed to get bootstrap token created by node-manager\nCreating bootstrap token from MCM.")
+	mcmToken, err := c.createBootstrapToken(machineName)
+	if err != nil {
+		return nil, err
+	}
+	return mcmToken, nil
+}
+
+func (c *controller) createBootstrapToken(machineName string) (secret *v1.Secret, err error) {
 	tokenID, secretName := getTokenIDAndSecretName(machineName)
 	bootstrapTokenSecretKey, err := generateRandomStringFromCharset(16, "0123456789abcdefghijklmnopqrstuvwxyz")
 	if err != nil {
