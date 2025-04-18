@@ -785,12 +785,21 @@ func (d *VsphereDriver) GetVMs(machineID string) (VMs, error) {
 
 		matchingVMs := intersectMOReferences(vmObjectRefs, clusterNodeIntersection)
 		for _, vmObjectRef := range matchingVMs {
-			vmObject := vmObjectRef.(*object.VirtualMachine)
+			vmObject, ok := vmObjectRef.(*object.VirtualMachine)
+			if !ok {
+				return nil, fmt.Errorf("one of the retrieved object is not a VM")
+			}
+
 			var vmMO mo.VirtualMachine
 			err := vmObject.Properties(ctx, vmObject.Reference(), []string{"config"}, &vmMO)
 			if err != nil {
 				return nil, fmt.Errorf("failed to get config field from VM properties: %s", err)
 			}
+
+			if vmMO.Config == nil {
+				return nil, fmt.Errorf("the 'config' field of the VM is unset")
+			}
+
 			listOfVMs[d.encodeMachineID(vmMO.Config.Uuid)] = vmMO.Config.Name
 		}
 
