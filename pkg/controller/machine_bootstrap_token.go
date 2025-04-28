@@ -74,6 +74,15 @@ func (c *controller) addBootstrapTokenToUserData(machineLabels map[string]string
 }
 
 func (c *controller) getBootstrapTokenOrCreateIfNotExist(machineLabels map[string]string, machineName string) (secret *v1.Secret, err error) {
+	if machineLabels == nil {
+		klog.Warningf("failed to get labels from machine: '%s'\nCreating bootstrap token by MCM!", machineName)
+		mcmToken, err := c.createBootstrapToken(machineName)
+		if err != nil {
+			return nil, err
+		}
+		return mcmToken, nil
+	}
+
 	value, ok := machineLabels["node.deckhouse.io/group"]
 	if !ok || value == "" {
 		klog.Warningf("failed to get nodegroup name from spec node.deckhouse.io/group of machine: '%s'\nCreating bootstrap token by MCM!", machineName)
