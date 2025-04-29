@@ -644,9 +644,10 @@ func getMachineKeys(machines []*v1alpha1.Machine) []string {
 
 func (c *controller) prepareMachineForDeletion(targetMachine *v1alpha1.Machine, machineSet *v1alpha1.MachineSet, wg *sync.WaitGroup, errCh chan<- error) {
 	defer wg.Done()
-
+	klog.V(5).Infof("Preparing to delete %v %s/%s", targetMachine.Kind, targetMachine.Namespace, targetMachine.Name)
 	// Machine is already marked as 'to-be-deleted'
 	if targetMachine.DeletionTimestamp != nil {
+		klog.V(5).Info("Machine is already marked as 'to-be-deleted'")
 		return
 	}
 
@@ -716,6 +717,7 @@ func (c *controller) terminateStaleMachines(inactiveMachines []*v1alpha1.Machine
 
 	wg.Add(deletionWindow)
 	for deletedMachines = 0; deletedMachines < deletionWindow && deletedMachines < len(inactiveMachines); deletedMachines++ {
+		klog.V(2).Infof("Deleting inactive machine %q", inactiveMachines[deletedMachines].Name)
 		go c.prepareMachineForDeletion(inactiveMachines[deletedMachines], machineSet, &wg, errCh)
 	}
 	wg.Wait()
