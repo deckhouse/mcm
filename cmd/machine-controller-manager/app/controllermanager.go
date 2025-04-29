@@ -299,7 +299,9 @@ func StartControllers(s *options.MCMServer,
 }
 
 // TODO: In general, any controller checking this needs to be dynamic so
-//  users don't have to restart their controller manager if they change the apiserver.
+//
+//	users don't have to restart their controller manager if they change the apiserver.
+//
 // Until we get there, the structure here needs to be exposed for the construction of a proper ControllerContext.
 func getAvailableResources(clientBuilder corecontroller.ClientBuilder) (map[schema.GroupVersionResource]bool, error) {
 	var discoveryClient discovery.DiscoveryInterface
@@ -355,7 +357,7 @@ func getAvailableResources(clientBuilder corecontroller.ClientBuilder) (map[sche
 func createRecorder(kubeClient *kubernetes.Clientset) record.EventRecorder {
 	machinescheme.AddToScheme(kubescheme.Scheme)
 	eventBroadcaster := record.NewBroadcaster()
-	eventBroadcaster.StartLogging(klog.Infof)
+	eventBroadcaster.StartLogging(klog.V(2).Infof)
 	eventBroadcaster.StartRecordingToSink(&v1core.EventSinkImpl{Interface: v1core.New(kubeClient.CoreV1().RESTClient()).Events("")})
 	return eventBroadcaster.NewRecorder(kubescheme.Scheme, v1.EventSource{Component: controllerManagerAgentName})
 }

@@ -797,8 +797,7 @@ func (c *controller) machineDelete(machine *v1alpha1.Machine, driver drivers.Dri
 			err = drainOptions.RunDrain()
 			if err == nil {
 				// Drain successful
-				klog.V(2).Infof("Drain successful for machine %q. \nBuf:%v \nErrBuf:%v", machine.Name, buf, errBuf)
-				klog.V(2).Infof("Record event about draining %s", machine.Name)
+				klog.V(2).Infof("Drain successful for machine %q. \nBuf:%v \nErrBuf:%v\nRecord event about draining %s", machine.Name, buf, errBuf, machine.Name)
 				c.recorder.Eventf(machine, corev1.EventTypeNormal, "SuccessfulDrainNode", "success draining Machine's node %q", machine.Status.Node)
 				klog.V(2).Infof("Event about draining %s recorded", machine.Name)
 			} else if err != nil && forceDeleteMachine {

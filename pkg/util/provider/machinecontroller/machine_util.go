@@ -1012,9 +1012,7 @@ func (c *controller) drainNode(deleteMachineRequest *driver.DeleteMachineRequest
 			err = drainOptions.RunDrain()
 			if err == nil {
 				// Drain successful
-				klog.V(2).Infof("Drain successful for machine %q. \nBuf:%v \nErrBuf:%v", machine.Name, buf, errBuf)
-
-				klog.V(2).Infof("Record event about draining mu %s", machine.Name)
+				klog.V(2).Infof("Drain successful for machine %q. \nBuf:%v \nErrBuf:%v\nRecord event about draining mu %s", machine.Name, buf, errBuf, machine.Name)
 
 				c.recorder.Eventf(machine, corev1.EventTypeNormal, "SuccessfulDrainNode", "success draining Machine's node %q", machine.Status.Node)
 
