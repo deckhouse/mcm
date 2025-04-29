@@ -57,7 +57,8 @@ var (
 )
 
 // TODO: use client library instead when it starts to support update retries
-//       see https://github.com/kubernetes/kubernetes/issues/21479
+//
+//	see https://github.com/kubernetes/kubernetes/issues/21479
 type updateMachineFunc func(machine *v1alpha1.Machine) error
 
 /*
@@ -758,8 +759,8 @@ func (c *controller) deleteMachineFinalizers(machine *v1alpha1.Machine) (machine
 }
 
 /*
-	SECTION
-	Helper Functions
+SECTION
+Helper Functions
 */
 func (c *controller) isHealthy(machine *v1alpha1.Machine) bool {
 	numOfConditions := len(machine.Status.Conditions)
@@ -1012,6 +1013,8 @@ func (c *controller) drainNode(deleteMachineRequest *driver.DeleteMachineRequest
 			if err == nil {
 				// Drain successful
 				klog.V(2).Infof("Drain successful for machine %q. \nBuf:%v \nErrBuf:%v", machine.Name, buf, errBuf)
+
+				c.recorder.Eventf(machine, corev1.EventTypeNormal, "SuccessfulDrainNode", "success draining Machine's node %q", machine.Status.Node)
 
 				description = fmt.Sprintf("Drain successful. %s", machineutils.InitiateVMDeletion)
 				state = v1alpha1.MachineStateProcessing
