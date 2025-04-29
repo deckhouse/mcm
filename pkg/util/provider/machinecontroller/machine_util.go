@@ -1014,7 +1014,11 @@ func (c *controller) drainNode(deleteMachineRequest *driver.DeleteMachineRequest
 				// Drain successful
 				klog.V(2).Infof("Drain successful for machine %q. \nBuf:%v \nErrBuf:%v", machine.Name, buf, errBuf)
 
+				klog.V(2).Infof("Record event about draining mu %s", machine.Name)
+
 				c.recorder.Eventf(machine, corev1.EventTypeNormal, "SuccessfulDrainNode", "success draining Machine's node %q", machine.Status.Node)
+
+				klog.V(2).Infof("Event about draining mu %s recorded", machine.Name)
 
 				description = fmt.Sprintf("Drain successful. %s", machineutils.InitiateVMDeletion)
 				state = v1alpha1.MachineStateProcessing
