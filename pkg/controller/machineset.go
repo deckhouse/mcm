@@ -340,9 +340,13 @@ func (c *controller) manageReplicas(allMachines []*v1alpha1.Machine, machineSet 
 	machineDeletionWindow := c.calculateStaleMachineDeletionWindow(activeMachines, runningMachines, staleMachines, machineSet)
 
 	if len(staleMachines) >= 1 {
-		klog.V(2).Infof("Deleting stale machines")
+		klog.V(2).Infof("Deleting stale machines, machineSet: %v, activeMachines: %v, runningMachines: %v, staleMachines: %v, machineDeletionWindow: %v", machineSet.Name, activeMachines, runningMachines, len(staleMachines), machineDeletionWindow)
 	}
-	deletedStaleMachines, _ := c.terminateStaleMachines(staleMachines, machineDeletionWindow, machineSet)
+	deletedStaleMachines, err := c.terminateStaleMachines(staleMachines, machineDeletionWindow, machineSet)
+	if err != nil {
+		klog.V(2).Infof("Failed to terminate stale machines, machineSet: %v, err: %v", machineSet.Name, err)
+		return err
+	}
 	staleMachinesLeft := len(staleMachines) - deletedStaleMachines
 
 	diff := len(activeMachines) - int(machineSet.Spec.Replicas)

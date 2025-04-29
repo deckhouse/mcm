@@ -249,7 +249,6 @@ func (c *controller) Run(workers int, stopCh <-chan struct{}) {
 	// will collect metrics to expose them via the metrics endpoint of the mcm
 	// every time when the endpoint is called.
 	prometheus.MustRegister(c)
-
 	for i := 0; i < workers; i++ {
 		createWorker(c.secretQueue, "ClusterSecret", maxRetries, true, c.reconcileClusterSecretKey, stopCh, &waitGroup)
 		createWorker(c.machineClassQueue, "ClusterMachineClass", maxRetries, true, c.reconcileClusterMachineClassKey, stopCh, &waitGroup)
