@@ -214,9 +214,6 @@ func (c *controller) reconcileClusterMachine(machine *v1alpha1.Machine) error {
 			}
 		}
 
-		// removing the machine from balancing
-		c.setExcludeLBLabel(machine)
-
 		// Processing of delete event
 		if err := c.machineDelete(machine, driver); err != nil {
 			c.enqueueMachineAfter(machine, MachineEnqueueRetryPeriod)
@@ -1055,27 +1052,6 @@ func (c *controller) updateMachineFinalizers(machine *v1alpha1.Machine, finalize
 		// Keep retrying until update goes through
 		klog.Warningf("Warning: Updated failed, retrying, error: %q", err)
 		c.updateMachineFinalizers(machine, finalizers)
-	}
-}
-
-func (c *controller) setExcludeLBLabel(machine *v1alpha1.Machine) {
-	// Get the latest version of the machine so that we can avoid conflicts
-	node, err := c.controlCoreClient.CoreV1().Nodes().Get(machine.Name, metav1.GetOptions{})
-	if err != nil {
-		return
-	}
-
-	clone := node.DeepCopy()
-	if clone.Labels == nil {
-		clone.Labels = map[string]string{}
-	}
-	clone.Labels["node.kubernetes.io/exclude-from-external-load-balancers"] = ""
-
-	_, err = c.controlCoreClient.CoreV1().Nodes().Update(clone)
-	if err != nil {
-		// Keep retrying until update goes through
-		klog.Warningf("Warning: Updated failed, retrying, error: %q", err)
-		c.setExcludeLBLabel(machine)
 	}
 }
 
