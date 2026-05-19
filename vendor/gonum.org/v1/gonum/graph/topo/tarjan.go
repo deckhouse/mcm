@@ -6,11 +6,11 @@ package topo
 
 import (
 	"fmt"
-	"sort"
+	"slices"
 
 	"gonum.org/v1/gonum/graph"
-	"gonum.org/v1/gonum/graph/internal/ordered"
 	"gonum.org/v1/gonum/graph/internal/set"
+	"gonum.org/v1/gonum/internal/order"
 )
 
 // Unorderable is an error containing sets of unorderable graph.Nodes.
@@ -30,7 +30,7 @@ func (e Unorderable) Error() string {
 	return fmt.Sprintf("topo: no topological ordering: cyclic components: %v", [][]graph.Node(e))
 }
 
-func lexical(nodes []graph.Node) { sort.Sort(ordered.ByID(nodes)) }
+func lexical(nodes []graph.Node) { order.ByID(nodes) }
 
 // Sort performs a topological sort of the directed graph g returning the 'from' to 'to'
 // sort order. If a topological ordering is not possible, an Unorderable error is returned
@@ -71,12 +71,10 @@ func sortedFrom(sccs [][]graph.Node, order func([]graph.Node)) ([]graph.Node, er
 	}
 	var err error
 	if sc != nil {
-		for i, j := 0, len(sc)-1; i < j; i, j = i+1, j-1 {
-			sc[i], sc[j] = sc[j], sc[i]
-		}
+		slices.Reverse(sc)
 		err = sc
 	}
-	ordered.Reverse(sorted)
+	slices.Reverse(sorted)
 	return sorted, err
 }
 
@@ -88,7 +86,6 @@ func sortedFrom(sccs [][]graph.Node, order func([]graph.Node)) ([]graph.Node, er
 // Generally speaking, a directed graph where the number of strongly connected components is equal
 // to the number of nodes is acyclic, unless you count reflexive edges as a cycle (which requires
 // only a little extra testing.)
-//
 func TarjanSCC(g graph.Directed) [][]graph.Node {
 	return tarjanSCCstabilized(g, nil)
 }
@@ -102,12 +99,12 @@ func tarjanSCCstabilized(g graph.Directed, order func([]graph.Node)) [][]graph.N
 		}
 	} else {
 		order(nodes)
-		ordered.Reverse(nodes)
+		slices.Reverse(nodes)
 
 		succ = func(id int64) []graph.Node {
 			to := graph.NodesOf(g.From(id))
 			order(to)
-			ordered.Reverse(to)
+			slices.Reverse(to)
 			return to
 		}
 	}
@@ -117,7 +114,7 @@ func tarjanSCCstabilized(g graph.Directed, order func([]graph.Node)) [][]graph.N
 
 		indexTable: make(map[int64]int, len(nodes)),
 		lowLink:    make(map[int64]int, len(nodes)),
-		onStack:    make(set.Int64s),
+		onStack:    make(set.Ints[int64]),
 	}
 	for _, v := range nodes {
 		if t.indexTable[v.ID()] == 0 {
@@ -131,14 +128,13 @@ func tarjanSCCstabilized(g graph.Directed, order func([]graph.Node)) [][]graph.N
 // algorithm. The implementation is from the pseudocode at
 //
 // http://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm?oldid=642744644
-//
 type tarjan struct {
 	succ func(id int64) []graph.Node
 
 	index      int
 	indexTable map[int64]int
 	lowLink    map[int64]int
-	onStack    set.Int64s
+	onStack    set.Ints[int64]
 
 	stack []graph.Node
 
@@ -189,11 +185,4 @@ func (t *tarjan) strongconnect(v graph.Node) {
 		// Output the current strongly connected component.
 		t.sccs = append(t.sccs, scc)
 	}
-}
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
 }

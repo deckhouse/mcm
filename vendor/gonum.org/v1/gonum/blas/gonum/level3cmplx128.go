@@ -14,9 +14,13 @@ import (
 var _ blas.Complex128Level3 = Implementation{}
 
 // Zgemm performs one of the matrix-matrix operations
-//  C = alpha * op(A) * op(B) + beta * C
+//
+//	C = alpha * op(A) * op(B) + beta * C
+//
 // where op(X) is one of
-//  op(X) = X  or  op(X) = X^T  or  op(X) = X^H,
+//
+//	op(X) = X  or  op(X) = Xᵀ  or  op(X) = Xᴴ,
+//
 // alpha and beta are scalars, and A, B and C are matrices, with op(A) an m×k matrix,
 // op(B) a k×n matrix and C an m×n matrix.
 func (Implementation) Zgemm(tA, tB blas.Transpose, m, n, k int, alpha complex128, a []complex128, lda int, b []complex128, ldb int, beta complex128, c []complex128, ldc int) {
@@ -118,7 +122,7 @@ func (Implementation) Zgemm(tA, tB blas.Transpose, m, n, k int, alpha complex128
 				}
 			}
 		case blas.Trans:
-			// Form  C = alpha * A * B^T + beta * C.
+			// Form  C = alpha * A * Bᵀ + beta * C.
 			for i := 0; i < m; i++ {
 				switch {
 				case beta == 0:
@@ -138,7 +142,7 @@ func (Implementation) Zgemm(tA, tB blas.Transpose, m, n, k int, alpha complex128
 				}
 			}
 		case blas.ConjTrans:
-			// Form  C = alpha * A * B^H + beta * C.
+			// Form  C = alpha * A * Bᴴ + beta * C.
 			for i := 0; i < m; i++ {
 				switch {
 				case beta == 0:
@@ -161,7 +165,7 @@ func (Implementation) Zgemm(tA, tB blas.Transpose, m, n, k int, alpha complex128
 	case blas.Trans:
 		switch tB {
 		case blas.NoTrans:
-			// Form  C = alpha * A^T * B + beta * C.
+			// Form  C = alpha * Aᵀ * B + beta * C.
 			for i := 0; i < m; i++ {
 				for j := 0; j < n; j++ {
 					var tmp complex128
@@ -176,7 +180,7 @@ func (Implementation) Zgemm(tA, tB blas.Transpose, m, n, k int, alpha complex128
 				}
 			}
 		case blas.Trans:
-			// Form  C = alpha * A^T * B^T + beta * C.
+			// Form  C = alpha * Aᵀ * Bᵀ + beta * C.
 			for i := 0; i < m; i++ {
 				for j := 0; j < n; j++ {
 					var tmp complex128
@@ -191,7 +195,7 @@ func (Implementation) Zgemm(tA, tB blas.Transpose, m, n, k int, alpha complex128
 				}
 			}
 		case blas.ConjTrans:
-			// Form  C = alpha * A^T * B^H + beta * C.
+			// Form  C = alpha * Aᵀ * Bᴴ + beta * C.
 			for i := 0; i < m; i++ {
 				for j := 0; j < n; j++ {
 					var tmp complex128
@@ -209,7 +213,7 @@ func (Implementation) Zgemm(tA, tB blas.Transpose, m, n, k int, alpha complex128
 	case blas.ConjTrans:
 		switch tB {
 		case blas.NoTrans:
-			// Form  C = alpha * A^H * B + beta * C.
+			// Form  C = alpha * Aᴴ * B + beta * C.
 			for i := 0; i < m; i++ {
 				for j := 0; j < n; j++ {
 					var tmp complex128
@@ -224,7 +228,7 @@ func (Implementation) Zgemm(tA, tB blas.Transpose, m, n, k int, alpha complex128
 				}
 			}
 		case blas.Trans:
-			// Form  C = alpha * A^H * B^T + beta * C.
+			// Form  C = alpha * Aᴴ * Bᵀ + beta * C.
 			for i := 0; i < m; i++ {
 				for j := 0; j < n; j++ {
 					var tmp complex128
@@ -239,7 +243,7 @@ func (Implementation) Zgemm(tA, tB blas.Transpose, m, n, k int, alpha complex128
 				}
 			}
 		case blas.ConjTrans:
-			// Form  C = alpha * A^H * B^H + beta * C.
+			// Form  C = alpha * Aᴴ * Bᴴ + beta * C.
 			for i := 0; i < m; i++ {
 				for j := 0; j < n; j++ {
 					var tmp complex128
@@ -258,8 +262,10 @@ func (Implementation) Zgemm(tA, tB blas.Transpose, m, n, k int, alpha complex128
 }
 
 // Zhemm performs one of the matrix-matrix operations
-//  C = alpha*A*B + beta*C  if side == blas.Left
-//  C = alpha*B*A + beta*C  if side == blas.Right
+//
+//	C = alpha*A*B + beta*C  if side == blas.Left
+//	C = alpha*B*A + beta*C  if side == blas.Right
+//
 // where alpha and beta are scalars, A is an m×m or n×n hermitian matrix and B
 // and C are m×n matrices. The imaginary parts of the diagonal elements of A are
 // assumed to be zero.
@@ -405,8 +411,10 @@ func (Implementation) Zhemm(side blas.Side, uplo blas.Uplo, m, n int, alpha comp
 }
 
 // Zherk performs one of the hermitian rank-k operations
-//  C = alpha*A*A^H + beta*C  if trans == blas.NoTrans
-//  C = alpha*A^H*A + beta*C  if trans == blas.ConjTrans
+//
+//	C = alpha*A*Aᴴ + beta*C  if trans == blas.NoTrans
+//	C = alpha*Aᴴ*A + beta*C  if trans == blas.ConjTrans
+//
 // where alpha and beta are real scalars, C is an n×n hermitian matrix and A is
 // an n×k matrix in the first case and a k×n matrix in the second case.
 //
@@ -494,7 +502,7 @@ func (Implementation) Zherk(uplo blas.Uplo, trans blas.Transpose, n, k int, alph
 
 	calpha := complex(alpha, 0)
 	if trans == blas.NoTrans {
-		// Form  C = alpha*A*A^H + beta*C.
+		// Form  C = alpha*A*Aᴴ + beta*C.
 		cbeta := complex(beta, 0)
 		if uplo == blas.Upper {
 			for i := 0; i < n; i++ {
@@ -553,7 +561,7 @@ func (Implementation) Zherk(uplo blas.Uplo, trans blas.Transpose, n, k int, alph
 			}
 		}
 	} else {
-		// Form  C = alpha*A^H*A + beta*C.
+		// Form  C = alpha*Aᴴ*A + beta*C.
 		if uplo == blas.Upper {
 			for i := 0; i < n; i++ {
 				ci := c[i*ldc+i : i*ldc+n]
@@ -603,8 +611,10 @@ func (Implementation) Zherk(uplo blas.Uplo, trans blas.Transpose, n, k int, alph
 }
 
 // Zher2k performs one of the hermitian rank-2k operations
-//  C = alpha*A*B^H + conj(alpha)*B*A^H + beta*C  if trans == blas.NoTrans
-//  C = alpha*A^H*B + conj(alpha)*B^H*A + beta*C  if trans == blas.ConjTrans
+//
+//	C = alpha*A*Bᴴ + conj(alpha)*B*Aᴴ + beta*C  if trans == blas.NoTrans
+//	C = alpha*Aᴴ*B + conj(alpha)*Bᴴ*A + beta*C  if trans == blas.ConjTrans
+//
 // where alpha and beta are scalars with beta real, C is an n×n hermitian matrix
 // and A and B are n×k matrices in the first case and k×n matrices in the second case.
 //
@@ -698,7 +708,7 @@ func (Implementation) Zher2k(uplo blas.Uplo, trans blas.Transpose, n, k int, alp
 	conjalpha := cmplx.Conj(alpha)
 	cbeta := complex(beta, 0)
 	if trans == blas.NoTrans {
-		// Form  C = alpha*A*B^H + conj(alpha)*B*A^H + beta*C.
+		// Form  C = alpha*A*Bᴴ + conj(alpha)*B*Aᴴ + beta*C.
 		if uplo == blas.Upper {
 			for i := 0; i < n; i++ {
 				ci := c[i*ldc+i+1 : i*ldc+n]
@@ -741,7 +751,7 @@ func (Implementation) Zher2k(uplo blas.Uplo, trans blas.Transpose, n, k int, alp
 			}
 		}
 	} else {
-		// Form  C = alpha*A^H*B + conj(alpha)*B^H*A + beta*C.
+		// Form  C = alpha*Aᴴ*B + conj(alpha)*Bᴴ*A + beta*C.
 		if uplo == blas.Upper {
 			for i := 0; i < n; i++ {
 				ci := c[i*ldc+i : i*ldc+n]
@@ -799,8 +809,10 @@ func (Implementation) Zher2k(uplo blas.Uplo, trans blas.Transpose, n, k int, alp
 }
 
 // Zsymm performs one of the matrix-matrix operations
-//  C = alpha*A*B + beta*C  if side == blas.Left
-//  C = alpha*B*A + beta*C  if side == blas.Right
+//
+//	C = alpha*A*B + beta*C  if side == blas.Left
+//	C = alpha*B*A + beta*C  if side == blas.Right
+//
 // where alpha and beta are scalars, A is an m×m or n×n symmetric matrix and B
 // and C are m×n matrices.
 func (Implementation) Zsymm(side blas.Side, uplo blas.Uplo, m, n int, alpha complex128, a []complex128, lda int, b []complex128, ldb int, beta complex128, c []complex128, ldc int) {
@@ -943,8 +955,10 @@ func (Implementation) Zsymm(side blas.Side, uplo blas.Uplo, m, n int, alpha comp
 }
 
 // Zsyrk performs one of the symmetric rank-k operations
-//  C = alpha*A*A^T + beta*C  if trans == blas.NoTrans
-//  C = alpha*A^T*A + beta*C  if trans == blas.Trans
+//
+//	C = alpha*A*Aᵀ + beta*C  if trans == blas.NoTrans
+//	C = alpha*Aᵀ*A + beta*C  if trans == blas.Trans
+//
 // where alpha and beta are scalars, C is an n×n symmetric matrix and A is
 // an n×k matrix in the first case and a k×n matrix in the second case.
 func (Implementation) Zsyrk(uplo blas.Uplo, trans blas.Transpose, n, k int, alpha complex128, a []complex128, lda int, beta complex128, c []complex128, ldc int) {
@@ -1022,27 +1036,40 @@ func (Implementation) Zsyrk(uplo blas.Uplo, trans blas.Transpose, n, k int, alph
 	}
 
 	if trans == blas.NoTrans {
-		// Form  C = alpha*A*A^T + beta*C.
+		// Form  C = alpha*A*Aᵀ + beta*C.
 		if uplo == blas.Upper {
 			for i := 0; i < n; i++ {
 				ci := c[i*ldc+i : i*ldc+n]
 				ai := a[i*lda : i*lda+k]
-				for jc, cij := range ci {
-					j := i + jc
-					ci[jc] = beta*cij + alpha*c128.DotuUnitary(ai, a[j*lda:j*lda+k])
+				if beta == 0 {
+					for jc := range ci {
+						j := i + jc
+						ci[jc] = alpha * c128.DotuUnitary(ai, a[j*lda:j*lda+k])
+					}
+				} else {
+					for jc, cij := range ci {
+						j := i + jc
+						ci[jc] = beta*cij + alpha*c128.DotuUnitary(ai, a[j*lda:j*lda+k])
+					}
 				}
 			}
 		} else {
 			for i := 0; i < n; i++ {
 				ci := c[i*ldc : i*ldc+i+1]
 				ai := a[i*lda : i*lda+k]
-				for j, cij := range ci {
-					ci[j] = beta*cij + alpha*c128.DotuUnitary(ai, a[j*lda:j*lda+k])
+				if beta == 0 {
+					for j := range ci {
+						ci[j] = alpha * c128.DotuUnitary(ai, a[j*lda:j*lda+k])
+					}
+				} else {
+					for j, cij := range ci {
+						ci[j] = beta*cij + alpha*c128.DotuUnitary(ai, a[j*lda:j*lda+k])
+					}
 				}
 			}
 		}
 	} else {
-		// Form  C = alpha*A^T*A + beta*C.
+		// Form  C = alpha*Aᵀ*A + beta*C.
 		if uplo == blas.Upper {
 			for i := 0; i < n; i++ {
 				ci := c[i*ldc+i : i*ldc+n]
@@ -1088,8 +1115,10 @@ func (Implementation) Zsyrk(uplo blas.Uplo, trans blas.Transpose, n, k int, alph
 }
 
 // Zsyr2k performs one of the symmetric rank-2k operations
-//  C = alpha*A*B^T + alpha*B*A^T + beta*C  if trans == blas.NoTrans
-//  C = alpha*A^T*B + alpha*B^T*A + beta*C  if trans == blas.Trans
+//
+//	C = alpha*A*Bᵀ + alpha*B*Aᵀ + beta*C  if trans == blas.NoTrans
+//	C = alpha*Aᵀ*B + alpha*Bᵀ*A + beta*C  if trans == blas.Trans
+//
 // where alpha and beta are scalars, C is an n×n symmetric matrix and A and B
 // are n×k matrices in the first case and k×n matrices in the second case.
 func (Implementation) Zsyr2k(uplo blas.Uplo, trans blas.Transpose, n, k int, alpha complex128, a []complex128, lda int, b []complex128, ldb int, beta complex128, c []complex128, ldc int) {
@@ -1172,7 +1201,7 @@ func (Implementation) Zsyr2k(uplo blas.Uplo, trans blas.Transpose, n, k int, alp
 	}
 
 	if trans == blas.NoTrans {
-		// Form  C = alpha*A*B^T + alpha*B*A^T + beta*C.
+		// Form  C = alpha*A*Bᵀ + alpha*B*Aᵀ + beta*C.
 		if uplo == blas.Upper {
 			for i := 0; i < n; i++ {
 				ci := c[i*ldc+i : i*ldc+n]
@@ -1207,7 +1236,7 @@ func (Implementation) Zsyr2k(uplo blas.Uplo, trans blas.Transpose, n, k int, alp
 			}
 		}
 	} else {
-		// Form  C = alpha*A^T*B + alpha*B^T*A + beta*C.
+		// Form  C = alpha*Aᵀ*B + alpha*Bᵀ*A + beta*C.
 		if uplo == blas.Upper {
 			for i := 0; i < n; i++ {
 				ci := c[i*ldc+i : i*ldc+n]
@@ -1261,13 +1290,16 @@ func (Implementation) Zsyr2k(uplo blas.Uplo, trans blas.Transpose, n, k int, alp
 }
 
 // Ztrmm performs one of the matrix-matrix operations
-//  B = alpha * op(A) * B  if side == blas.Left,
-//  B = alpha * B * op(A)  if side == blas.Right,
+//
+//	B = alpha * op(A) * B  if side == blas.Left,
+//	B = alpha * B * op(A)  if side == blas.Right,
+//
 // where alpha is a scalar, B is an m×n matrix, A is a unit, or non-unit,
 // upper or lower triangular matrix and op(A) is one of
-//  op(A) = A    if trans == blas.NoTrans,
-//  op(A) = A^T  if trans == blas.Trans,
-//  op(A) = A^H  if trans == blas.ConjTrans.
+//
+//	op(A) = A   if trans == blas.NoTrans,
+//	op(A) = Aᵀ  if trans == blas.Trans,
+//	op(A) = Aᴴ  if trans == blas.ConjTrans.
 func (Implementation) Ztrmm(side blas.Side, uplo blas.Uplo, trans blas.Transpose, diag blas.Diag, m, n int, alpha complex128, a []complex128, lda int, b []complex128, ldb int) {
 	na := m
 	if side == blas.Right {
@@ -1356,7 +1388,7 @@ func (Implementation) Ztrmm(side blas.Side, uplo blas.Uplo, trans blas.Transpose
 				}
 			}
 		} else {
-			// Form B = alpha*A^T*B  or  B = alpha*A^H*B.
+			// Form B = alpha*Aᵀ*B  or  B = alpha*Aᴴ*B.
 			if uplo == blas.Upper {
 				for k := m - 1; k >= 0; k-- {
 					bk := b[k*ldb : k*ldb+n]
@@ -1445,7 +1477,7 @@ func (Implementation) Ztrmm(side blas.Side, uplo blas.Uplo, trans blas.Transpose
 				}
 			}
 		} else {
-			// Form B = alpha*B*A^T  or  B = alpha*B*A^H.
+			// Form B = alpha*B*Aᵀ  or  B = alpha*B*Aᴴ.
 			if uplo == blas.Upper {
 				for i := 0; i < m; i++ {
 					bi := b[i*ldb : i*ldb+n]
@@ -1489,13 +1521,17 @@ func (Implementation) Ztrmm(side blas.Side, uplo blas.Uplo, trans blas.Transpose
 }
 
 // Ztrsm solves one of the matrix equations
-//  op(A) * X = alpha * B  if side == blas.Left,
-//  X * op(A) = alpha * B  if side == blas.Right,
+//
+//	op(A) * X = alpha * B  if side == blas.Left,
+//	X * op(A) = alpha * B  if side == blas.Right,
+//
 // where alpha is a scalar, X and B are m×n matrices, A is a unit or
 // non-unit, upper or lower triangular matrix and op(A) is one of
-//  op(A) = A    if transA == blas.NoTrans,
-//  op(A) = A^T  if transA == blas.Trans,
-//  op(A) = A^H  if transA == blas.ConjTrans.
+//
+//	op(A) = A   if transA == blas.NoTrans,
+//	op(A) = Aᵀ  if transA == blas.Trans,
+//	op(A) = Aᴴ  if transA == blas.ConjTrans.
+//
 // On return the matrix X is overwritten on B.
 func (Implementation) Ztrsm(side blas.Side, uplo blas.Uplo, transA blas.Transpose, diag blas.Diag, m, n int, alpha complex128, a []complex128, lda int, b []complex128, ldb int) {
 	na := m
@@ -1581,7 +1617,7 @@ func (Implementation) Ztrsm(side blas.Side, uplo blas.Uplo, transA blas.Transpos
 				}
 			}
 		} else {
-			// Form  B = alpha*inv(A^T)*B  or  B = alpha*inv(A^H)*B.
+			// Form  B = alpha*inv(Aᵀ)*B  or  B = alpha*inv(Aᴴ)*B.
 			if uplo == blas.Upper {
 				for i := 0; i < m; i++ {
 					bi := b[i*ldb : i*ldb+n]
@@ -1670,7 +1706,7 @@ func (Implementation) Ztrsm(side blas.Side, uplo blas.Uplo, transA blas.Transpos
 				}
 			}
 		} else {
-			// Form  B = alpha*B*inv(A^T)  or   B = alpha*B*inv(A^H).
+			// Form  B = alpha*B*inv(Aᵀ)  or   B = alpha*B*inv(Aᴴ).
 			if uplo == blas.Upper {
 				for i := 0; i < m; i++ {
 					bi := b[i*ldb : i*ldb+n]

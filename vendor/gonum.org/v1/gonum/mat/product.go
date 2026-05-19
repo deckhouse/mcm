@@ -31,7 +31,7 @@ func (m *Dense) Product(factors ...Matrix) {
 		}
 		return
 	case 1:
-		m.reuseAs(factors[0].Dims())
+		m.reuseAsNonZeroed(factors[0].Dims())
 		m.Copy(factors[0])
 		return
 	case 2:
@@ -43,9 +43,9 @@ func (m *Dense) Product(factors ...Matrix) {
 	p := newMultiplier(m, factors)
 	p.optimize()
 	result := p.multiply()
-	m.reuseAs(result.Dims())
+	m.reuseAsNonZeroed(result.Dims())
 	m.Copy(result)
-	putWorkspace(result)
+	putDenseWorkspace(result)
 }
 
 // debugProductWalk enables debugging output for Product.
@@ -71,7 +71,7 @@ func newMultiplier(m *Dense, factors []Matrix) *multiplier {
 	// allocate data for m.
 	r, c := m.Dims()
 	fr, fc := factors[0].Dims() // newMultiplier is only called with len(factors) > 2.
-	if !m.IsZero() {
+	if !m.IsEmpty() {
 		if fr != r {
 			panic(ErrShape)
 		}
@@ -154,13 +154,13 @@ func (p *multiplier) multiplySubchain(i, j int) (m Matrix, intermediate bool) {
 			i, ar, ac, result(aTmp), j, br, bc, result(bTmp))
 	}
 
-	r := getWorkspace(ar, bc, false)
+	r := getDenseWorkspace(ar, bc, false)
 	r.Mul(a, b)
 	if aTmp {
-		putWorkspace(a.(*Dense))
+		putDenseWorkspace(a.(*Dense))
 	}
 	if bTmp {
-		putWorkspace(b.(*Dense))
+		putDenseWorkspace(b.(*Dense))
 	}
 	return r, true
 }

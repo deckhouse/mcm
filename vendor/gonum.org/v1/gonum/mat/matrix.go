@@ -9,9 +9,8 @@ import (
 
 	"gonum.org/v1/gonum/blas"
 	"gonum.org/v1/gonum/blas/blas64"
-	"gonum.org/v1/gonum/floats"
+	"gonum.org/v1/gonum/floats/scalar"
 	"gonum.org/v1/gonum/lapack"
-	"gonum.org/v1/gonum/lapack/lapack64"
 )
 
 // Matrix is the basic matrix interface type.
@@ -28,6 +27,24 @@ type Matrix interface {
 	// This method may be implemented using the Transpose type, which
 	// provides an implicit matrix transpose.
 	T() Matrix
+}
+
+// allMatrix represents the extra set of methods that all mat Matrix types
+// should satisfy. This is used to enforce compile-time consistency between the
+// Dense types, especially helpful when adding new features.
+type allMatrix interface {
+	Reseter
+	IsEmpty() bool
+	Zero()
+}
+
+// denseMatrix represents the extra set of methods that all Dense Matrix types
+// should satisfy. This is used to enforce compile-time consistency between the
+// Dense types, especially helpful when adding new features.
+type denseMatrix interface {
+	DiagView() Diagonal
+	Tracer
+	Normer
 }
 
 var (
@@ -129,19 +146,20 @@ type RawColViewer interface {
 	RawColView(j int) []float64
 }
 
-// A Cloner can make a copy of a into the receiver, overwriting the previous value of the
+// A ClonerFrom can make a copy of a into the receiver, overwriting the previous value of the
 // receiver. The clone operation does not make any restriction on shape and will not cause
 // shadowing.
-type Cloner interface {
-	Clone(a Matrix)
+type ClonerFrom interface {
+	CloneFrom(a Matrix)
 }
 
 // A Reseter can reset the matrix so that it can be reused as the receiver of a dimensionally
 // restricted operation. This is commonly used when the matrix is being used as a workspace
 // or temporary matrix.
 //
-// If the matrix is a view, using the reset matrix may result in data corruption in elements
-// outside the view.
+// If the matrix is a view, using Reset may result in data corruption in elements outside
+// the view. Similarly, if the matrix shares backing data with another variable, using
+// Reset may lead to unexpected changes in data values.
 type Reseter interface {
 	Reset()
 }
@@ -163,12 +181,6 @@ type Copier interface {
 type Grower interface {
 	Caps() (r, c int)
 	Grow(r, c int) Matrix
-}
-
-// A BandWidther represents a banded matrix and can return the left and right half-bandwidths, k1 and
-// k2.
-type BandWidther interface {
-	BandWidth() (k1, k2 int)
 }
 
 // A RawMatrixSetter can set the underlying blas64.General used by the receiver. There is no restriction
@@ -207,6 +219,17 @@ type ColNonZeroDoer interface {
 	DoColNonZero(j int, fn func(i, j int, v float64))
 }
 
+// A SolveToer can solve a linear system A⋅X = B or Aᵀ⋅X = B where A is a matrix
+// represented by the receiver and B is a given matrix, storing the result into
+// dst.
+//
+// If dst is empty, SolveTo will resize it to the correct size, otherwise it
+// must have the correct size. Individual implementations may impose other
+// restrictions on the input parameters, for example that A is a square matrix.
+type SolveToer interface {
+	SolveTo(dst *Dense, trans bool, b Matrix) error
+}
+
 // untranspose untransposes a matrix if applicable. If a is an Untransposer, then
 // untranspose returns the underlying matrix and true. If it is not, then it returns
 // the input matrix and false.
@@ -226,7 +249,7 @@ func untranspose(a Matrix) (Matrix, bool) {
 func untransposeExtract(a Matrix) (Matrix, bool) {
 	ut, trans := untranspose(a)
 	switch m := ut.(type) {
-	case *DiagDense, *SymBandDense, *TriBandDense, *BandDense, *TriDense, *SymDense, *Dense:
+	case *DiagDense, *SymBandDense, *TriBandDense, *BandDense, *TriDense, *SymDense, *Dense, *VecDense, *Tridiag:
 		return m, trans
 	// TODO(btracey): Add here if we ever have an equivalent of RawDiagDense.
 	case RawSymBander:
@@ -268,6 +291,14 @@ func untransposeExtract(a Matrix) (Matrix, bool) {
 	case RawMatrixer:
 		var d Dense
 		d.SetRawMatrix(m.RawMatrix())
+		return &d, trans
+	case RawVectorer:
+		var v VecDense
+		v.SetRawVector(m.RawVector())
+		return &v, trans
+	case RawTridiagonaler:
+		var d Tridiag
+		d.SetRawTridiagonal(m.RawTridiagonal())
 		return &d, trans
 	default:
 		return ut, trans
@@ -346,17 +377,17 @@ func Row(dst []float64, i int, a Matrix) []float64 {
 
 // Cond returns the condition number of the given matrix under the given norm.
 // The condition number must be based on the 1-norm, 2-norm or ∞-norm.
-// Cond will panic with matrix.ErrShape if the matrix has zero size.
+// Cond will panic with ErrZeroLength if the matrix has zero size.
 //
 // BUG(btracey): The computation of the 1-norm and ∞-norm for non-square matrices
-// is innacurate, although is typically the right order of magnitude. See
+// is inaccurate, although is typically the right order of magnitude. See
 // https://github.com/xianyi/OpenBLAS/issues/636. While the value returned will
 // change with the resolution of this bug, the result from Cond will match the
 // condition number used internally.
 func Cond(a Matrix, norm float64) float64 {
 	m, n := a.Dims()
 	if m == 0 || n == 0 {
-		panic(ErrShape)
+		panic(ErrZeroLength)
 	}
 	var lnorm lapack.MatrixNorm
 	switch norm {
@@ -393,20 +424,28 @@ func Cond(a Matrix, norm float64) float64 {
 	return lq.Cond()
 }
 
-// Det returns the determinant of the matrix a. In many expressions using LogDet
-// will be more numerically stable.
+// Det returns the determinant of the square matrix a. In many expressions using
+// LogDet will be more numerically stable.
+//
+// Det panics with ErrSquare if a is not square and with ErrZeroLength if a has
+// zero size.
 func Det(a Matrix) float64 {
 	det, sign := LogDet(a)
 	return math.Exp(det) * sign
 }
 
 // Dot returns the sum of the element-wise product of a and b.
-// Dot panics if the matrix sizes are unequal.
+//
+// Dot panics with ErrShape if the vector sizes are unequal and with
+// ErrZeroLength if the sizes are zero.
 func Dot(a, b Vector) float64 {
 	la := a.Len()
 	lb := b.Len()
 	if la != lb {
 		panic(ErrShape)
+	}
+	if la == 0 {
+		panic(ErrZeroLength)
 	}
 	if arv, ok := a.(RawVectorer); ok {
 		if brv, ok := b.(RawVectorer); ok {
@@ -509,7 +548,7 @@ func EqualApprox(a, b Matrix, epsilon float64) bool {
 			if aTrans == bTrans {
 				for i := 0; i < ra.Rows; i++ {
 					for j := 0; j < ra.Cols; j++ {
-						if !floats.EqualWithinAbsOrRel(ra.Data[i*ra.Stride+j], rb.Data[i*rb.Stride+j], epsilon, epsilon) {
+						if !scalar.EqualWithinAbsOrRel(ra.Data[i*ra.Stride+j], rb.Data[i*rb.Stride+j], epsilon, epsilon) {
 							return false
 						}
 					}
@@ -518,7 +557,7 @@ func EqualApprox(a, b Matrix, epsilon float64) bool {
 			}
 			for i := 0; i < ra.Rows; i++ {
 				for j := 0; j < ra.Cols; j++ {
-					if !floats.EqualWithinAbsOrRel(ra.Data[i*ra.Stride+j], rb.Data[j*rb.Stride+i], epsilon, epsilon) {
+					if !scalar.EqualWithinAbsOrRel(ra.Data[i*ra.Stride+j], rb.Data[j*rb.Stride+i], epsilon, epsilon) {
 						return false
 					}
 				}
@@ -533,7 +572,7 @@ func EqualApprox(a, b Matrix, epsilon float64) bool {
 			// Symmetric matrices are always upper and equal to their transpose.
 			for i := 0; i < ra.N; i++ {
 				for j := i; j < ra.N; j++ {
-					if !floats.EqualWithinAbsOrRel(ra.Data[i*ra.Stride+j], rb.Data[i*rb.Stride+j], epsilon, epsilon) {
+					if !scalar.EqualWithinAbsOrRel(ra.Data[i*ra.Stride+j], rb.Data[i*rb.Stride+j], epsilon, epsilon) {
 						return false
 					}
 				}
@@ -546,7 +585,7 @@ func EqualApprox(a, b Matrix, epsilon float64) bool {
 			// If the raw vectors are the same length they must either both be
 			// transposed or both not transposed (or have length 1).
 			for i := 0; i < ra.mat.N; i++ {
-				if !floats.EqualWithinAbsOrRel(ra.mat.Data[i*ra.mat.Inc], rb.mat.Data[i*rb.mat.Inc], epsilon, epsilon) {
+				if !scalar.EqualWithinAbsOrRel(ra.mat.Data[i*ra.mat.Inc], rb.mat.Data[i*rb.mat.Inc], epsilon, epsilon) {
 					return false
 				}
 			}
@@ -555,7 +594,7 @@ func EqualApprox(a, b Matrix, epsilon float64) bool {
 	}
 	for i := 0; i < ar; i++ {
 		for j := 0; j < ac; j++ {
-			if !floats.EqualWithinAbsOrRel(a.At(i, j), b.At(i, j), epsilon, epsilon) {
+			if !scalar.EqualWithinAbsOrRel(a.At(i, j), b.At(i, j), epsilon, epsilon) {
 				return false
 			}
 		}
@@ -566,6 +605,9 @@ func EqualApprox(a, b Matrix, epsilon float64) bool {
 // LogDet returns the log of the determinant and the sign of the determinant
 // for the matrix that has been factorized. Numerical stability in product and
 // division expressions is generally improved by working in log space.
+//
+// LogDet panics with ErrSquare is a is not square and with ErrZeroLength if a
+// has zero size.
 func LogDet(a Matrix) (det float64, sign float64) {
 	// TODO(btracey): Add specialized routines for TriDense, etc.
 	var lu LU
@@ -574,13 +616,14 @@ func LogDet(a Matrix) (det float64, sign float64) {
 }
 
 // Max returns the largest element value of the matrix A.
-// Max will panic with matrix.ErrShape if the matrix has zero size.
+//
+// Max will panic with ErrZeroLength if the matrix has zero size.
 func Max(a Matrix) float64 {
 	r, c := a.Dims()
 	if r == 0 || c == 0 {
-		panic(ErrShape)
+		panic(ErrZeroLength)
 	}
-	// Max(A) = Max(A^T)
+	// Max(A) = Max(Aᵀ)
 	aU, _ := untranspose(a)
 	switch m := aU.(type) {
 	case RawMatrixer:
@@ -649,13 +692,14 @@ func Max(a Matrix) float64 {
 }
 
 // Min returns the smallest element value of the matrix A.
-// Min will panic with matrix.ErrShape if the matrix has zero size.
+//
+// Min will panic with ErrZeroLength if the matrix has zero size.
 func Min(a Matrix) float64 {
 	r, c := a.Dims()
 	if r == 0 || c == 0 {
-		panic(ErrShape)
+		panic(ErrZeroLength)
 	}
-	// Min(A) = Min(A^T)
+	// Min(A) = Min(Aᵀ)
 	aU, _ := untranspose(a)
 	switch m := aU.(type) {
 	case RawMatrixer:
@@ -723,71 +767,45 @@ func Min(a Matrix) float64 {
 	}
 }
 
-// Norm returns the specified (induced) norm of the matrix a. See
-// https://en.wikipedia.org/wiki/Matrix_norm for the definition of an induced norm.
+// A Normer can compute a norm of the matrix. Valid norms are:
 //
-// Valid norms are:
-//    1 - The maximum absolute column sum
-//    2 - Frobenius norm, the square root of the sum of the squares of the elements.
-//  Inf - The maximum absolute row sum.
-// Norm will panic with ErrNormOrder if an illegal norm order is specified and
-// with matrix.ErrShape if the matrix has zero size.
+//	1 - The maximum absolute column sum
+//	2 - The Frobenius norm, the square root of the sum of the squares of the elements
+//	Inf - The maximum absolute row sum
+type Normer interface {
+	Norm(norm float64) float64
+}
+
+// Norm returns the specified norm of the matrix A. Valid norms are:
+//
+//	1 - The maximum absolute column sum
+//	2 - The Frobenius norm, the square root of the sum of the squares of the elements
+//	Inf - The maximum absolute row sum
+//
+// If a is a Normer, its Norm method will be used to calculate the norm.
+//
+// Norm will panic with ErrNormOrder if an illegal norm is specified and with
+// ErrShape if the matrix has zero size.
 func Norm(a Matrix, norm float64) float64 {
 	r, c := a.Dims()
 	if r == 0 || c == 0 {
-		panic(ErrShape)
+		panic(ErrZeroLength)
 	}
-	aU, aTrans := untranspose(a)
-	var work []float64
-	switch rma := aU.(type) {
-	case RawMatrixer:
-		rm := rma.RawMatrix()
-		n := normLapack(norm, aTrans)
-		if n == lapack.MaxColumnSum {
-			work = getFloats(rm.Cols, false)
-			defer putFloats(work)
-		}
-		return lapack64.Lange(n, rm, work)
-	case RawTriangular:
-		rm := rma.RawTriangular()
-		n := normLapack(norm, aTrans)
-		if n == lapack.MaxRowSum || n == lapack.MaxColumnSum {
-			work = getFloats(rm.N, false)
-			defer putFloats(work)
-		}
-		return lapack64.Lantr(n, rm, work)
-	case RawSymmetricer:
-		rm := rma.RawSymmetric()
-		n := normLapack(norm, aTrans)
-		if n == lapack.MaxRowSum || n == lapack.MaxColumnSum {
-			work = getFloats(rm.N, false)
-			defer putFloats(work)
-		}
-		return lapack64.Lansy(n, rm, work)
-	case *VecDense:
-		rv := rma.RawVector()
-		switch norm {
-		default:
-			panic("unreachable")
-		case 1:
-			if aTrans {
-				imax := blas64.Iamax(rv)
-				return math.Abs(rma.At(imax, 0))
+	m, trans := untransposeExtract(a)
+	if m, ok := m.(Normer); ok {
+		if trans {
+			switch norm {
+			case 1:
+				norm = math.Inf(1)
+			case math.Inf(1):
+				norm = 1
 			}
-			return blas64.Asum(rv)
-		case 2:
-			return blas64.Nrm2(rv)
-		case math.Inf(1):
-			if aTrans {
-				return blas64.Asum(rv)
-			}
-			imax := blas64.Iamax(rv)
-			return math.Abs(rma.At(imax, 0))
 		}
+		return m.Norm(norm)
 	}
 	switch norm {
 	default:
-		panic("unreachable")
+		panic(ErrNormOrder)
 	case 1:
 		var max float64
 		for j := 0; j < c; j++ {
@@ -847,13 +865,49 @@ func normLapack(norm float64, aTrans bool) lapack.MatrixNorm {
 }
 
 // Sum returns the sum of the elements of the matrix.
+//
+// Sum will panic with ErrZeroLength if the matrix has zero size.
 func Sum(a Matrix) float64 {
-	// TODO(btracey): Add a fast path for the other supported matrix types.
-
 	r, c := a.Dims()
+	if r == 0 || c == 0 {
+		panic(ErrZeroLength)
+	}
 	var sum float64
 	aU, _ := untranspose(a)
-	if rma, ok := aU.(RawMatrixer); ok {
+	switch rma := aU.(type) {
+	case RawSymmetricer:
+		rm := rma.RawSymmetric()
+		for i := 0; i < rm.N; i++ {
+			// Diagonals count once while off-diagonals count twice.
+			sum += rm.Data[i*rm.Stride+i]
+			var s float64
+			for _, v := range rm.Data[i*rm.Stride+i+1 : i*rm.Stride+rm.N] {
+				s += v
+			}
+			sum += 2 * s
+		}
+		return sum
+	case RawTriangular:
+		rm := rma.RawTriangular()
+		var startIdx, endIdx int
+		for i := 0; i < rm.N; i++ {
+			// Start and end index for this triangle-row.
+			switch rm.Uplo {
+			case blas.Upper:
+				startIdx = i
+				endIdx = rm.N
+			case blas.Lower:
+				startIdx = 0
+				endIdx = i + 1
+			default:
+				panic(badTriangle)
+			}
+			for _, v := range rm.Data[i*rm.Stride+startIdx : i*rm.Stride+endIdx] {
+				sum += v
+			}
+		}
+		return sum
+	case RawMatrixer:
 		rm := rma.RawMatrix()
 		for i := 0; i < rm.Rows; i++ {
 			for _, v := range rm.Data[i*rm.Stride : i*rm.Stride+rm.Cols] {
@@ -861,29 +915,43 @@ func Sum(a Matrix) float64 {
 			}
 		}
 		return sum
-	}
-	for i := 0; i < r; i++ {
-		for j := 0; j < c; j++ {
-			sum += a.At(i, j)
+	case *VecDense:
+		rm := rma.RawVector()
+		for i := 0; i < rm.N; i++ {
+			sum += rm.Data[i*rm.Inc]
 		}
+		return sum
+	default:
+		r, c := a.Dims()
+		for i := 0; i < r; i++ {
+			for j := 0; j < c; j++ {
+				sum += a.At(i, j)
+			}
+		}
+		return sum
 	}
-	return sum
 }
 
-// A Tracer can compute the trace of the matrix. Trace must panic if the
-// matrix is not square.
+// A Tracer can compute the trace of the matrix. Trace must panic with ErrSquare
+// if the matrix is not square.
 type Tracer interface {
 	Trace() float64
 }
 
-// Trace returns the trace of the matrix. Trace will panic if the
-// matrix is not square.
+// Trace returns the trace of the matrix. If a is a Tracer, its Trace method
+// will be used to calculate the matrix trace.
+//
+// Trace will panic with ErrSquare if the matrix is not square and with
+// ErrZeroLength if the matrix has zero size.
 func Trace(a Matrix) float64 {
+	r, c := a.Dims()
+	if r == 0 || c == 0 {
+		panic(ErrZeroLength)
+	}
 	m, _ := untransposeExtract(a)
 	if t, ok := m.(Tracer); ok {
 		return t.Trace()
 	}
-	r, c := a.Dims()
 	if r != c {
 		panic(ErrSquare)
 	}
@@ -892,20 +960,6 @@ func Trace(a Matrix) float64 {
 		v += a.At(i, i)
 	}
 	return v
-}
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
-
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
 }
 
 // use returns a float64 slice with l elements, using f if it

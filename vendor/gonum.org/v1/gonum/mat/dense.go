@@ -7,15 +7,19 @@ package mat
 import (
 	"gonum.org/v1/gonum/blas"
 	"gonum.org/v1/gonum/blas/blas64"
+	"gonum.org/v1/gonum/lapack"
+	"gonum.org/v1/gonum/lapack/lapack64"
 )
 
 var (
 	dense *Dense
 
-	_ Matrix  = dense
-	_ Mutable = dense
+	_ Matrix      = dense
+	_ allMatrix   = dense
+	_ denseMatrix = dense
+	_ Mutable     = dense
 
-	_ Cloner       = dense
+	_ ClonerFrom   = dense
 	_ RowViewer    = dense
 	_ ColViewer    = dense
 	_ RawRowViewer = dense
@@ -47,7 +51,7 @@ func NewDense(r, c int, data []float64) *Dense {
 		if r == 0 || c == 0 {
 			panic(ErrZeroLength)
 		}
-		panic("mat: negative dimension")
+		panic(ErrNegativeDimension)
 	}
 	if data != nil && r*c != len(data) {
 		panic(ErrShape)
@@ -67,19 +71,40 @@ func NewDense(r, c int, data []float64) *Dense {
 	}
 }
 
-// reuseAs resizes an empty matrix to a r×c matrix,
-// or checks that a non-empty matrix is r×c.
+// ReuseAs changes the receiver if it IsEmpty() to be of size r×c.
 //
-// reuseAs must be kept in sync with reuseAsZeroed.
-func (m *Dense) reuseAs(r, c int) {
+// ReuseAs re-uses the backing data slice if it has sufficient capacity,
+// otherwise a new slice is allocated. The backing data is zero on return.
+//
+// ReuseAs panics if the receiver is not empty, and panics if
+// the input sizes are less than one. To empty the receiver for re-use,
+// Reset should be used.
+func (m *Dense) ReuseAs(r, c int) {
+	if r <= 0 || c <= 0 {
+		if r == 0 || c == 0 {
+			panic(ErrZeroLength)
+		}
+		panic(ErrNegativeDimension)
+	}
+	if !m.IsEmpty() {
+		panic(ErrReuseNonEmpty)
+	}
+	m.reuseAsZeroed(r, c)
+}
+
+// reuseAsNonZeroed resizes an empty matrix to a r×c matrix,
+// or checks that a non-empty matrix is r×c. It does not zero
+// the data in the receiver.
+func (m *Dense) reuseAsNonZeroed(r, c int) {
+	// reuseAs must be kept in sync with reuseAsZeroed.
 	if m.mat.Rows > m.capRows || m.mat.Cols > m.capCols {
 		// Panic as a string, not a mat.Error.
-		panic("mat: caps not correctly set")
+		panic(badCap)
 	}
 	if r == 0 || c == 0 {
 		panic(ErrZeroLength)
 	}
-	if m.IsZero() {
+	if m.IsEmpty() {
 		m.mat = blas64.General{
 			Rows:   r,
 			Cols:   c,
@@ -98,17 +123,16 @@ func (m *Dense) reuseAs(r, c int) {
 // reuseAsZeroed resizes an empty matrix to a r×c matrix,
 // or checks that a non-empty matrix is r×c. It zeroes
 // all the elements of the matrix.
-//
-// reuseAsZeroed must be kept in sync with reuseAs.
 func (m *Dense) reuseAsZeroed(r, c int) {
+	// reuseAsZeroed must be kept in sync with reuseAsNonZeroed.
 	if m.mat.Rows > m.capRows || m.mat.Cols > m.capCols {
 		// Panic as a string, not a mat.Error.
-		panic("mat: caps not correctly set")
+		panic(badCap)
 	}
 	if r == 0 || c == 0 {
 		panic(ErrZeroLength)
 	}
-	if m.IsZero() {
+	if m.IsEmpty() {
 		m.mat = blas64.General{
 			Rows:   r,
 			Cols:   c,
@@ -142,16 +166,17 @@ func (m *Dense) isolatedWorkspace(a Matrix) (w *Dense, restore func()) {
 	if r == 0 || c == 0 {
 		panic(ErrZeroLength)
 	}
-	w = getWorkspace(r, c, false)
+	w = getDenseWorkspace(r, c, false)
 	return w, func() {
 		m.Copy(w)
-		putWorkspace(w)
+		putDenseWorkspace(w)
 	}
 }
 
-// Reset zeros the dimensions of the matrix so that it can be reused as the
+// Reset empties the matrix so that it can be reused as the
 // receiver of a dimensionally restricted operation.
 //
+// Reset should not be used when the matrix shares backing data.
 // See the Reseter interface for more information.
 func (m *Dense) Reset() {
 	// Row, Cols and Stride must be zeroed in unison.
@@ -160,9 +185,10 @@ func (m *Dense) Reset() {
 	m.mat.Data = m.mat.Data[:0]
 }
 
-// IsZero returns whether the receiver is zero-sized. Zero-sized matrices can be the
-// receiver for size-restricted operations. Dense matrices can be zeroed using Reset.
-func (m *Dense) IsZero() bool {
+// IsEmpty returns whether the receiver is empty. Empty matrices can be the
+// receiver for size-restricted operations. The receiver can be emptied using
+// Reset.
+func (m *Dense) IsEmpty() bool {
 	// It must be the case that m.Dims() returns
 	// zeros in this case. See comment in Reset().
 	return m.mat.Stride == 0
@@ -186,7 +212,7 @@ func (m *Dense) asTriDense(n int, diag blas.Diag, uplo blas.Uplo) *TriDense {
 // DenseCopyOf returns a newly allocated copy of the elements of a.
 func DenseCopyOf(a Matrix) *Dense {
 	d := &Dense{}
-	d.Clone(a)
+	d.CloneFrom(a)
 	return d
 }
 
@@ -294,6 +320,10 @@ func (m *Dense) DiagView() Diagonal {
 // Slice panics with ErrIndexOutOfRange if the slice is outside the capacity
 // of the receiver.
 func (m *Dense) Slice(i, k, j, l int) Matrix {
+	return m.slice(i, k, j, l)
+}
+
+func (m *Dense) slice(i, k, j, l int) *Dense {
 	mr, mc := m.Caps()
 	if i < 0 || mr <= i || j < 0 || mc <= j || k < i || mr < k || l < j || mc < l {
 		if i == k || j == l {
@@ -375,12 +405,12 @@ func (m *Dense) Grow(r, c int) Matrix {
 	return &t
 }
 
-// Clone makes a copy of a into the receiver, overwriting the previous value of
-// the receiver. The clone operation does not make any restriction on shape and
+// CloneFrom makes a copy of a into the receiver, overwriting the previous value of
+// the receiver. The clone from operation does not make any restriction on shape and
 // will not cause shadowing.
 //
-// See the Cloner interface for more information.
-func (m *Dense) Clone(a Matrix) {
+// See the ClonerFrom interface for more information.
+func (m *Dense) CloneFrom(a Matrix) {
 	r, c := a.Dims()
 	mat := blas64.General{
 		Rows:   r,
@@ -389,10 +419,10 @@ func (m *Dense) Clone(a Matrix) {
 	}
 	m.capRows, m.capCols = r, c
 
-	aU, trans := untranspose(a)
+	aU, trans := untransposeExtract(a)
 	switch aU := aU.(type) {
-	case RawMatrixer:
-		amat := aU.RawMatrix()
+	case *Dense:
+		amat := aU.mat
 		mat.Data = make([]float64, r*c)
 		if trans {
 			for i := 0; i < r; i++ {
@@ -442,10 +472,10 @@ func (m *Dense) Copy(a Matrix) (r, c int) {
 		return 0, 0
 	}
 
-	aU, trans := untranspose(a)
+	aU, trans := untransposeExtract(a)
 	switch aU := aU.(type) {
-	case RawMatrixer:
-		amat := aU.RawMatrix()
+	case *Dense:
+		amat := aU.mat
 		if trans {
 			if amat.Stride != 1 {
 				m.checkOverlap(amat)
@@ -518,10 +548,10 @@ func (m *Dense) Stack(a, b Matrix) {
 		panic(ErrShape)
 	}
 
-	m.reuseAs(ar+br, ac)
+	m.reuseAsNonZeroed(ar+br, ac)
 
 	m.Copy(a)
-	w := m.Slice(ar, ar+br, 0, bc).(*Dense)
+	w := m.slice(ar, ar+br, 0, bc)
 	w.Copy(b)
 }
 
@@ -536,18 +566,24 @@ func (m *Dense) Augment(a, b Matrix) {
 		panic(ErrShape)
 	}
 
-	m.reuseAs(ar, ac+bc)
+	m.reuseAsNonZeroed(ar, ac+bc)
 
 	m.Copy(a)
-	w := m.Slice(0, br, ac, ac+bc).(*Dense)
+	w := m.slice(0, br, ac, ac+bc)
 	w.Copy(b)
 }
 
-// Trace returns the trace of the matrix. The matrix must be square or Trace
-// will panic.
+// Trace returns the trace of the matrix.
+//
+// Trace will panic with ErrSquare if the matrix is not square and with
+// ErrZeroLength if the matrix has zero size.
 func (m *Dense) Trace() float64 {
-	if m.mat.Rows != m.mat.Cols {
+	r, c := m.Dims()
+	if r != c {
 		panic(ErrSquare)
+	}
+	if m.IsEmpty() {
+		panic(ErrZeroLength)
 	}
 	// TODO(btracey): could use internal asm sum routine.
 	var v float64
@@ -555,4 +591,80 @@ func (m *Dense) Trace() float64 {
 		v += m.mat.Data[i*m.mat.Stride+i]
 	}
 	return v
+}
+
+// Norm returns the specified norm of the receiver. Valid norms are:
+//
+//	1 - The maximum absolute column sum
+//	2 - The Frobenius norm, the square root of the sum of the squares of the elements
+//	Inf - The maximum absolute row sum
+//
+// Norm will panic with ErrNormOrder if an illegal norm is specified and with
+// ErrShape if the matrix has zero size.
+func (m *Dense) Norm(norm float64) float64 {
+	if m.IsEmpty() {
+		panic(ErrZeroLength)
+	}
+	lnorm := normLapack(norm, false)
+	if lnorm == lapack.MaxColumnSum {
+		work := getFloat64s(m.mat.Cols, false)
+		defer putFloat64s(work)
+		return lapack64.Lange(lnorm, m.mat, work)
+	}
+	return lapack64.Lange(lnorm, m.mat, nil)
+}
+
+// Permutation constructs an n×n permutation matrix P from the given
+// row permutation such that the nonzero entries are P[i,p[i]] = 1.
+func (m *Dense) Permutation(n int, p []int) {
+	if len(p) != n {
+		panic(badSliceLength)
+	}
+	m.reuseAsZeroed(n, n)
+	for i, v := range p {
+		if v < 0 || v >= n {
+			panic(ErrRowAccess)
+		}
+		m.mat.Data[i*m.mat.Stride+v] = 1
+	}
+}
+
+// PermuteRows rearranges the rows of the m×n matrix A in the receiver as
+// specified by the permutation p[0],p[1],...,p[m-1] of the integers 0,...,m-1.
+//
+// If inverse is false, the given permutation is applied:
+//
+//	A[p[i],0:n] is moved to A[i,0:n] for i=0,1,...,m-1.
+//
+// If inverse is true, the inverse permutation is applied:
+//
+//	A[i,0:n] is moved to A[p[i],0:n] for i=0,1,...,m-1.
+//
+// p must have length m, otherwise PermuteRows will panic.
+func (m *Dense) PermuteRows(p []int, inverse bool) {
+	r, _ := m.Dims()
+	if len(p) != r {
+		panic(badSliceLength)
+	}
+	lapack64.Lapmr(!inverse, m.mat, p)
+}
+
+// PermuteCols rearranges the columns of the m×n matrix A in the reciever as
+// specified by the permutation p[0],p[1],...,p[n-1] of the integers 0,...,n-1.
+//
+// If inverse is false, the given permutation is applied:
+//
+//	A[0:m,p[j]] is moved to A[0:m,j] for j = 0, 1, ..., n-1.
+//
+// If inverse is true, the inverse permutation is applied:
+//
+//	A[0:m,j] is moved to A[0:m,p[j]] for j = 0, 1, ..., n-1.
+//
+// p must have length n, otherwise PermuteCols will panic.
+func (m *Dense) PermuteCols(p []int, inverse bool) {
+	_, c := m.Dims()
+	if len(p) != c {
+		panic(badSliceLength)
+	}
+	lapack64.Lapmt(!inverse, m.mat, p)
 }

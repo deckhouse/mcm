@@ -15,14 +15,19 @@ import (
 // Dtrevc3 computes some or all of the right and/or left eigenvectors of an n×n
 // upper quasi-triangular matrix T in Schur canonical form. Matrices of this
 // type are produced by the Schur factorization of a real general matrix A
-//  A = Q T Q^T,
+//
+//	A = Q T Qᵀ,
+//
 // as computed by Dhseqr.
 //
 // The right eigenvector x of T corresponding to an
 // eigenvalue λ is defined by
-//  T x = λ x,
+//
+//	T x = λ x,
+//
 // and the left eigenvector y is defined by
-//  y^T T = λ y^T.
+//
+//	yᵀ T = λ yᵀ.
 //
 // The eigenvalues are read directly from the diagonal blocks of T.
 //
@@ -62,28 +67,32 @@ import (
 //
 // On entry, if howmny is lapack.EVAllMulQ, it is assumed that VL (if side
 // is lapack.EVLeft or lapack.EVBoth) contains an n×n matrix QL,
-// and that VR (if side is lapack.EVLeft or lapack.EVBoth) contains
+// and that VR (if side is lapack.EVRight or lapack.EVBoth) contains
 // an n×n matrix QR. QL and QR are typically the orthogonal matrix Q of Schur
 // vectors returned by Dhseqr.
 //
 // On return, if side is lapack.EVLeft or lapack.EVBoth,
 // VL will contain:
-//  if howmny == lapack.EVAll,      the matrix Y of left eigenvectors of T,
-//  if howmny == lapack.EVAllMulQ,  the matrix Q*Y,
-//  if howmny == lapack.EVSelected, the left eigenvectors of T specified by
-//                                  selected, stored consecutively in the
-//                                  columns of VL, in the same order as their
-//                                  eigenvalues.
+//
+//	if howmny == lapack.EVAll,      the matrix Y of left eigenvectors of T,
+//	if howmny == lapack.EVAllMulQ,  the matrix Q*Y,
+//	if howmny == lapack.EVSelected, the left eigenvectors of T specified by
+//	                                selected, stored consecutively in the
+//	                                columns of VL, in the same order as their
+//	                                eigenvalues.
+//
 // VL is not referenced if side == lapack.EVRight.
 //
 // On return, if side is lapack.EVRight or lapack.EVBoth,
 // VR will contain:
-//  if howmny == lapack.EVAll,      the matrix X of right eigenvectors of T,
-//  if howmny == lapack.EVAllMulQ,  the matrix Q*X,
-//  if howmny == lapack.EVSelected, the left eigenvectors of T specified by
-//                                  selected, stored consecutively in the
-//                                  columns of VR, in the same order as their
-//                                  eigenvalues.
+//
+//	if howmny == lapack.EVAll,      the matrix X of right eigenvectors of T,
+//	if howmny == lapack.EVAllMulQ,  the matrix Q*X,
+//	if howmny == lapack.EVSelected, the left eigenvectors of T specified by
+//	                                selected, stored consecutively in the
+//	                                columns of VR, in the same order as their
+//	                                eigenvalues.
+//
 // VR is not referenced if side == lapack.EVLeft.
 //
 // Complex eigenvectors corresponding to a complex eigenvalue are stored in VL
@@ -614,7 +623,7 @@ leftev:
 				b[k*ldb+iv] = -t[ki*ldt+k]
 			}
 			// Solve transposed quasi-triangular system:
-			//  [ T[ki+1:n,ki+1:n] - wr ]^T * X = scale*b
+			//  [ T[ki+1:n,ki+1:n] - wr ]ᵀ * X = scale*b
 			vmax := 1.0
 			vcrit := bignum
 			for j := ki + 1; j < n; {
@@ -629,7 +638,7 @@ leftev:
 						vmax = 1
 					}
 					b[j*ldb+iv] -= bi.Ddot(j-ki-1, t[(ki+1)*ldt+j:], ldt, b[(ki+1)*ldb+iv:], ldb)
-					// Solve [ T[j,j] - wr ]^T * X = b.
+					// Solve [ T[j,j] - wr ]ᵀ * X = b.
 					scale, _, _ := impl.Dlaln2(false, 1, 1, smin, 1, t[j*ldt+j:], ldt,
 						1, 1, b[j*ldb+iv:], ldb, wr, 0, x[:1], 2)
 					// Scale if necessary.
@@ -647,14 +656,14 @@ leftev:
 					// when forming the right-hand side.
 					beta := math.Max(norms[j], norms[j+1])
 					if beta > vcrit {
-						bi.Dscal(n-ki+1, 1/vmax, b[ki*ldb+iv:], 1)
+						bi.Dscal(n-ki, 1/vmax, b[ki*ldb+iv:], ldb)
 						vmax = 1
 					}
 					b[j*ldb+iv] -= bi.Ddot(j-ki-1, t[(ki+1)*ldt+j:], ldt, b[(ki+1)*ldb+iv:], ldb)
 					b[(j+1)*ldb+iv] -= bi.Ddot(j-ki-1, t[(ki+1)*ldt+j+1:], ldt, b[(ki+1)*ldb+iv:], ldb)
 					// Solve
-					//  [ T[j,j]-wr  T[j,j+1]      ]^T * X = scale*[ b1 ]
-					//  [ T[j+1,j]   T[j+1,j+1]-wr ]               [ b2 ]
+					//  [ T[j,j]-wr  T[j,j+1]      ]ᵀ * X = scale*[ b1 ]
+					//  [ T[j+1,j]   T[j+1,j+1]-wr ]              [ b2 ]
 					scale, _, _ := impl.Dlaln2(true, 2, 1, smin, 1, t[j*ldt+j:], ldt,
 						1, 1, b[j*ldb+iv:], ldb, wr, 0, x[:3], 2)
 					// Scale if necessary.
@@ -702,8 +711,8 @@ leftev:
 			// Complex left eigenvector.
 
 			// Initial solve:
-			// [ [ T[ki,ki]   T[ki,ki+1]   ]^T - (wr - i* wi) ]*X = 0.
-			// [ [ T[ki+1,ki] T[ki+1,ki+1] ]                  ]
+			// [ [ T[ki,ki]   T[ki,ki+1]   ]ᵀ - (wr - i* wi) ]*X = 0.
+			// [ [ T[ki+1,ki] T[ki+1,ki+1] ]                 ]
 			if math.Abs(t[ki*ldt+ki+1]) >= math.Abs(t[(ki+1)*ldt+ki]) {
 				b[ki*ldb+iv] = wi / t[ki*ldt+ki+1]
 				b[(ki+1)*ldb+iv+1] = 1
@@ -719,7 +728,7 @@ leftev:
 				b[k*ldb+iv+1] = -b[(ki+1)*ldb+iv+1] * t[(ki+1)*ldt+k]
 			}
 			// Solve transposed quasi-triangular system:
-			// [ T[ki+2:n,ki+2:n]^T - (wr-i*wi) ]*X = b1+i*b2
+			// [ T[ki+2:n,ki+2:n]ᵀ - (wr-i*wi) ]*X = b1+i*b2
 			vmax := 1.0
 			vcrit := bignum
 			for j := ki + 2; j < n; {
@@ -765,8 +774,8 @@ leftev:
 					b[(j+1)*ldb+iv] -= bi.Ddot(j-ki-2, t[(ki+2)*ldt+j+1:], ldt, b[(ki+2)*ldb+iv:], ldb)
 					b[(j+1)*ldb+iv+1] -= bi.Ddot(j-ki-2, t[(ki+2)*ldt+j+1:], ldt, b[(ki+2)*ldb+iv+1:], ldb)
 					// Solve 2×2 complex linear equation
-					//  [ [T[j,j]   T[j,j+1]  ]^T - (wr-i*wi)*I ]*X = scale*b
-					//  [ [T[j+1,j] T[j+1,j+1]]                 ]
+					//  [ [T[j,j]   T[j,j+1]  ]ᵀ - (wr-i*wi)*I ]*X = scale*b
+					//  [ [T[j+1,j] T[j+1,j+1]]                ]
 					scale, _, _ := impl.Dlaln2(true, 2, 2, smin, 1, t[j*ldt+j:], ldt,
 						1, 1, b[j*ldb+iv:], ldb, wr, -wi, x[:], 2)
 					// Scale if necessary.

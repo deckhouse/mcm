@@ -14,9 +14,11 @@ import (
 var _ blas.Complex128Level2 = Implementation{}
 
 // Zgbmv performs one of the matrix-vector operations
-//  y = alpha * A * x + beta * y    if trans = blas.NoTrans
-//  y = alpha * A^T * x + beta * y  if trans = blas.Trans
-//  y = alpha * A^H * x + beta * y  if trans = blas.ConjTrans
+//
+//	y = alpha * A * x + beta * y   if trans = blas.NoTrans
+//	y = alpha * Aᵀ * x + beta * y  if trans = blas.Trans
+//	y = alpha * Aᴴ * x + beta * y  if trans = blas.ConjTrans
+//
 // where alpha and beta are scalars, x and y are vectors, and A is an m×n band matrix
 // with kL sub-diagonals and kU super-diagonals.
 func (Implementation) Zgbmv(trans blas.Transpose, m, n, kL, kU int, alpha complex128, a []complex128, lda int, x []complex128, incX int, beta complex128, y []complex128, incY int) {
@@ -209,9 +211,11 @@ func (Implementation) Zgbmv(trans blas.Transpose, m, n, kL, kU int, alpha comple
 }
 
 // Zgemv performs one of the matrix-vector operations
-//  y = alpha * A * x + beta * y    if trans = blas.NoTrans
-//  y = alpha * A^T * x + beta * y  if trans = blas.Trans
-//  y = alpha * A^H * x + beta * y  if trans = blas.ConjTrans
+//
+//	y = alpha * A * x + beta * y   if trans = blas.NoTrans
+//	y = alpha * Aᵀ * x + beta * y  if trans = blas.Trans
+//	y = alpha * Aᴴ * x + beta * y  if trans = blas.ConjTrans
+//
 // where alpha and beta are scalars, x and y are vectors, and A is an m×n dense matrix.
 func (Implementation) Zgemv(trans blas.Transpose, m, n int, alpha complex128, a []complex128, lda int, x []complex128, incX int, beta complex128, y []complex128, incY int) {
 	switch trans {
@@ -322,7 +326,7 @@ func (Implementation) Zgemv(trans blas.Transpose, m, n int, alpha complex128, a 
 		return
 
 	case blas.Trans:
-		// Form y = alpha*A^T*x + y.
+		// Form y = alpha*Aᵀ*x + y.
 		ix := kx
 		if incY == 1 {
 			for i := 0; i < m; i++ {
@@ -338,7 +342,7 @@ func (Implementation) Zgemv(trans blas.Transpose, m, n int, alpha complex128, a 
 		return
 
 	case blas.ConjTrans:
-		// Form y = alpha*A^H*x + y.
+		// Form y = alpha*Aᴴ*x + y.
 		ix := kx
 		if incY == 1 {
 			for i := 0; i < m; i++ {
@@ -364,7 +368,9 @@ func (Implementation) Zgemv(trans blas.Transpose, m, n int, alpha complex128, a 
 }
 
 // Zgerc performs the rank-one operation
-//  A += alpha * x * y^H
+//
+//	A += alpha * x * yᴴ
+//
 // where A is an m×n dense matrix, alpha is a scalar, x is an m element vector,
 // and y is an n element vector.
 func (Implementation) Zgerc(m, n int, alpha complex128, x []complex128, incX int, y []complex128, incY int, a []complex128, lda int) {
@@ -422,7 +428,9 @@ func (Implementation) Zgerc(m, n int, alpha complex128, x []complex128, incX int
 }
 
 // Zgeru performs the rank-one operation
-//  A += alpha * x * y^T
+//
+//	A += alpha * x * yᵀ
+//
 // where A is an m×n dense matrix, alpha is a scalar, x is an m element vector,
 // and y is an n element vector.
 func (Implementation) Zgeru(m, n int, alpha complex128, x []complex128, incX int, y []complex128, incY int, a []complex128, lda int) {
@@ -491,7 +499,9 @@ func (Implementation) Zgeru(m, n int, alpha complex128, x []complex128, incX int
 }
 
 // Zhbmv performs the matrix-vector operation
-//  y = alpha * A * x + beta * y
+//
+//	y = alpha * A * x + beta * y
+//
 // where alpha and beta are scalars, x and y are vectors, and A is an n×n
 // Hermitian band matrix with k super-diagonals. The imaginary parts of
 // the diagonal elements of A are ignored and assumed to be zero.
@@ -662,7 +672,9 @@ func (Implementation) Zhbmv(uplo blas.Uplo, n, k int, alpha complex128, a []comp
 }
 
 // Zhemv performs the matrix-vector operation
-//  y = alpha * A * x + beta * y
+//
+//	y = alpha * A * x + beta * y
+//
 // where alpha and beta are scalars, x and y are vectors, and A is an n×n
 // Hermitian matrix. The imaginary parts of the diagonal elements of A are
 // ignored and assumed to be zero.
@@ -822,7 +834,9 @@ func (Implementation) Zhemv(uplo blas.Uplo, n int, alpha complex128, a []complex
 }
 
 // Zher performs the Hermitian rank-one operation
-//  A += alpha * x * x^H
+//
+//	A += alpha * x * xᴴ
+//
 // where A is an n×n Hermitian matrix, alpha is a real scalar, and x is an n
 // element vector. On entry, the imaginary parts of the diagonal elements of A
 // are ignored and assumed to be zero, on return they will be set to zero.
@@ -944,7 +958,9 @@ func (Implementation) Zher(uplo blas.Uplo, n int, alpha float64, x []complex128,
 }
 
 // Zher2 performs the Hermitian rank-two operation
-//  A += alpha * x * y^H + conj(alpha) * y * x^H
+//
+//	A += alpha * x * yᴴ + conj(alpha) * y * xᴴ
+//
 // where alpha is a scalar, x and y are n element vectors and A is an n×n
 // Hermitian matrix. On entry, the imaginary parts of the diagonal elements are
 // ignored and assumed to be zero. On return they will be set to zero.
@@ -1081,7 +1097,9 @@ func (Implementation) Zher2(uplo blas.Uplo, n int, alpha complex128, x []complex
 }
 
 // Zhpmv performs the matrix-vector operation
-//  y = alpha * A * x + beta * y
+//
+//	y = alpha * A * x + beta * y
+//
 // where alpha and beta are scalars, x and y are vectors, and A is an n×n
 // Hermitian matrix in packed form. The imaginary parts of the diagonal
 // elements of A are ignored and assumed to be zero.
@@ -1248,7 +1266,9 @@ func (Implementation) Zhpmv(uplo blas.Uplo, n int, alpha complex128, ap []comple
 }
 
 // Zhpr performs the Hermitian rank-1 operation
-//  A += alpha * x * x^H
+//
+//	A += alpha * x * xᴴ
+//
 // where alpha is a real scalar, x is a vector, and A is an n×n hermitian matrix
 // in packed form. On entry, the imaginary parts of the diagonal elements are
 // assumed to be zero, and on return they are set to zero.
@@ -1382,7 +1402,9 @@ func (Implementation) Zhpr(uplo blas.Uplo, n int, alpha float64, x []complex128,
 }
 
 // Zhpr2 performs the Hermitian rank-2 operation
-//  A += alpha * x * y^H + conj(alpha) * y * x^H
+//
+//	A += alpha * x * yᴴ + conj(alpha) * y * xᴴ
+//
 // where alpha is a complex scalar, x and y are n element vectors, and A is an
 // n×n Hermitian matrix, supplied in packed form. On entry, the imaginary parts
 // of the diagonal elements are assumed to be zero, and on return they are set to zero.
@@ -1529,9 +1551,11 @@ func (Implementation) Zhpr2(uplo blas.Uplo, n int, alpha complex128, x []complex
 }
 
 // Ztbmv performs one of the matrix-vector operations
-//  x = A * x    if trans = blas.NoTrans
-//  x = A^T * x  if trans = blas.Trans
-//  x = A^H * x  if trans = blas.ConjTrans
+//
+//	x = A * x   if trans = blas.NoTrans
+//	x = Aᵀ * x  if trans = blas.Trans
+//	x = Aᴴ * x  if trans = blas.ConjTrans
+//
 // where x is an n element vector and A is an n×n triangular band matrix, with
 // (k+1) diagonals.
 func (Implementation) Ztbmv(uplo blas.Uplo, trans blas.Transpose, diag blas.Diag, n, k int, a []complex128, lda int, x []complex128, incX int) {
@@ -1765,9 +1789,11 @@ func (Implementation) Ztbmv(uplo blas.Uplo, trans blas.Transpose, diag blas.Diag
 }
 
 // Ztbsv solves one of the systems of equations
-//  A * x = b    if trans == blas.NoTrans
-//  A^T * x = b  if trans == blas.Trans
-//  A^H * x = b  if trans == blas.ConjTrans
+//
+//	A * x = b   if trans == blas.NoTrans
+//	Aᵀ * x = b  if trans == blas.Trans
+//	Aᴴ * x = b  if trans == blas.ConjTrans
+//
 // where b and x are n element vectors and A is an n×n triangular band matrix
 // with (k+1) diagonals.
 //
@@ -2007,9 +2033,11 @@ func (Implementation) Ztbsv(uplo blas.Uplo, trans blas.Transpose, diag blas.Diag
 }
 
 // Ztpmv performs one of the matrix-vector operations
-//  x = A * x    if trans = blas.NoTrans
-//  x = A^T * x  if trans = blas.Trans
-//  x = A^H * x  if trans = blas.ConjTrans
+//
+//	x = A * x   if trans = blas.NoTrans
+//	x = Aᵀ * x  if trans = blas.Trans
+//	x = Aᴴ * x  if trans = blas.ConjTrans
+//
 // where x is an n element vector and A is an n×n triangular matrix, supplied in
 // packed form.
 func (Implementation) Ztpmv(uplo blas.Uplo, trans blas.Transpose, diag blas.Diag, n int, ap []complex128, x []complex128, incX int) {
@@ -2116,7 +2144,7 @@ func (Implementation) Ztpmv(uplo blas.Uplo, trans blas.Transpose, diag blas.Diag
 	}
 
 	if trans == blas.Trans {
-		// Form x = A^T*x.
+		// Form x = Aᵀ*x.
 		if uplo == blas.Upper {
 			// kk points to the current diagonal element in ap.
 			kk := n*(n+1)/2 - 1
@@ -2176,7 +2204,7 @@ func (Implementation) Ztpmv(uplo blas.Uplo, trans blas.Transpose, diag blas.Diag
 		return
 	}
 
-	// Form x = A^H*x.
+	// Form x = Aᴴ*x.
 	if uplo == blas.Upper {
 		// kk points to the current diagonal element in ap.
 		kk := n*(n+1)/2 - 1
@@ -2245,9 +2273,11 @@ func (Implementation) Ztpmv(uplo blas.Uplo, trans blas.Transpose, diag blas.Diag
 }
 
 // Ztpsv solves one of the systems of equations
-//  A * x = b    if trans == blas.NoTrans
-//  A^T * x = b  if trans == blas.Trans
-//  A^H * x = b  if trans == blas.ConjTrans
+//
+//	A * x = b   if trans == blas.NoTrans
+//	Aᵀ * x = b  if trans == blas.Trans
+//	Aᴴ * x = b  if trans == blas.ConjTrans
+//
 // where b and x are n element vectors and A is an n×n triangular matrix in
 // packed form.
 //
@@ -2359,7 +2389,7 @@ func (Implementation) Ztpsv(uplo blas.Uplo, trans blas.Transpose, diag blas.Diag
 	}
 
 	if trans == blas.Trans {
-		// Form x = inv(A^T)*x.
+		// Form x = inv(Aᵀ)*x.
 		if uplo == blas.Upper {
 			kk := 0
 			if incX == 1 {
@@ -2414,7 +2444,7 @@ func (Implementation) Ztpsv(uplo blas.Uplo, trans blas.Transpose, diag blas.Diag
 		return
 	}
 
-	// Form x = inv(A^H)*x.
+	// Form x = inv(Aᴴ)*x.
 	if uplo == blas.Upper {
 		kk := 0
 		if incX == 1 {
@@ -2481,9 +2511,11 @@ func (Implementation) Ztpsv(uplo blas.Uplo, trans blas.Transpose, diag blas.Diag
 }
 
 // Ztrmv performs one of the matrix-vector operations
-//  x = A * x    if trans = blas.NoTrans
-//  x = A^T * x  if trans = blas.Trans
-//  x = A^H * x  if trans = blas.ConjTrans
+//
+//	x = A * x   if trans = blas.NoTrans
+//	x = Aᵀ * x  if trans = blas.Trans
+//	x = Aᴴ * x  if trans = blas.ConjTrans
+//
 // where x is a vector, and A is an n×n triangular matrix.
 func (Implementation) Ztrmv(uplo blas.Uplo, trans blas.Transpose, diag blas.Diag, n int, a []complex128, lda int, x []complex128, incX int) {
 	switch trans {
@@ -2583,7 +2615,7 @@ func (Implementation) Ztrmv(uplo blas.Uplo, trans blas.Transpose, diag blas.Diag
 	}
 
 	if trans == blas.Trans {
-		// Form x = A^T*x.
+		// Form x = Aᵀ*x.
 		if uplo == blas.Upper {
 			if incX == 1 {
 				for i := n - 1; i >= 0; i-- {
@@ -2634,7 +2666,7 @@ func (Implementation) Ztrmv(uplo blas.Uplo, trans blas.Transpose, diag blas.Diag
 		return
 	}
 
-	// Form x = A^H*x.
+	// Form x = Aᴴ*x.
 	if uplo == blas.Upper {
 		if incX == 1 {
 			for i := n - 1; i >= 0; i-- {
@@ -2689,9 +2721,11 @@ func (Implementation) Ztrmv(uplo blas.Uplo, trans blas.Transpose, diag blas.Diag
 }
 
 // Ztrsv solves one of the systems of equations
-//  A * x = b    if trans == blas.NoTrans
-//  A^T * x = b  if trans == blas.Trans
-//  A^H * x = b  if trans == blas.ConjTrans
+//
+//	A * x = b   if trans == blas.NoTrans
+//	Aᵀ * x = b  if trans == blas.Trans
+//	Aᴴ * x = b  if trans == blas.ConjTrans
+//
 // where b and x are n element vectors and A is an n×n triangular matrix.
 //
 // On entry, x contains the values of b, and the solution is
@@ -2799,7 +2833,7 @@ func (Implementation) Ztrsv(uplo blas.Uplo, trans blas.Transpose, diag blas.Diag
 	}
 
 	if trans == blas.Trans {
-		// Form x = inv(A^T)*x.
+		// Form x = inv(Aᵀ)*x.
 		if uplo == blas.Upper {
 			if incX == 1 {
 				for j := 0; j < n; j++ {
@@ -2849,7 +2883,7 @@ func (Implementation) Ztrsv(uplo blas.Uplo, trans blas.Transpose, diag blas.Diag
 		return
 	}
 
-	// Form x = inv(A^H)*x.
+	// Form x = inv(Aᴴ)*x.
 	if uplo == blas.Upper {
 		if incX == 1 {
 			for j := 0; j < n; j++ {
