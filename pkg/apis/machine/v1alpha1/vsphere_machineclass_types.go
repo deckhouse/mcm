@@ -32,6 +32,8 @@ const (
 	VspherePassword string = "password"
 	// VsphereInsecure is a constant for a key name that is part of the Vsphere cloud credentials.
 	VsphereInsecure string = "insecure"
+	// VsphereCABundle is a constant for a key name that is part of the Vsphere cloud credentials.
+	VsphereCABundle string = "caBundle"
 	// VsphereRegionTagCategory is a constant for a key name that is part of the Vsphere cloud credentials.
 	VsphereRegionTagCategory string = "regionTagCategory"
 	// VsphereZoneTagCategory is a constant for a key name that is part of the Vsphere cloud credentials.

@@ -83,6 +83,10 @@ func NewVsphereDriver(machineClass *v1alpha1.VsphereMachineClass, secretData map
 		if err != nil {
 			panic(fmt.Errorf("not bool: %s", insecureBytes))
 		}
+		caBundle, ok := secretData[v1alpha1.VsphereCABundle]
+		if !ok {
+			caBundle = nil
+		}
 		regionTagCategoryName, ok := secretData[v1alpha1.VsphereRegionTagCategory]
 		if !ok {
 			panic(fmt.Errorf("missing %s in secret", v1alpha1.VsphereRegionTagCategory))
@@ -92,7 +96,7 @@ func NewVsphereDriver(machineClass *v1alpha1.VsphereMachineClass, secretData map
 			panic(fmt.Errorf("missing %s in secret", v1alpha1.VsphereZoneTagCategory))
 		}
 
-		vsphereInfo.loginFunc = createVsphereClient(string(host), string(username), string(password), insecure)
+		vsphereInfo.loginFunc = createVsphereClient(string(host), string(username), string(password), insecure, caBundle)
 		vsphereInfo.tagManager = NewTagManager(string(regionTagCategoryName), string(zoneTagCategoryName))
 	}
 
