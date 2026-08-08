@@ -5,6 +5,8 @@
 package mat
 
 import (
+	"math"
+
 	"gonum.org/v1/gonum/blas"
 	"gonum.org/v1/gonum/blas/blas64"
 )
@@ -12,6 +14,8 @@ import (
 var (
 	diagDense *DiagDense
 	_         Matrix          = diagDense
+	_         allMatrix       = diagDense
+	_         denseMatrix     = diagDense
 	_         Diagonal        = diagDense
 	_         MutableDiagonal = diagDense
 	_         Triangular      = diagDense
@@ -39,27 +43,14 @@ type Diagonal interface {
 	// Diag returns the number of rows/columns in the matrix.
 	Diag() int
 
-	// Bandwidth and TBand are included in the Diagonal interface
-	// to allow the use of Diagonal types in banded functions.
-	// Bandwidth will always return (0, 0).
-	Bandwidth() (kl, ku int)
-	TBand() Banded
-
-	// Triangle and TTri are included in the Diagonal interface
-	// to allow the use of Diagonal types in triangular functions.
-	Triangle() (int, TriKind)
-	TTri() Triangular
-
-	// Symmetric and SymBand are included in the Diagonal interface
-	// to allow the use of Diagonal types in symmetric and banded symmetric
-	// functions respectively.
-	Symmetric() int
-	SymBand() (n, k int)
-
-	// TriBand and TTriBand are included in the Diagonal interface
-	// to allow the use of Diagonal types in triangular banded functions.
-	TriBand() (n, k int, kind TriKind)
-	TTriBand() TriBanded
+	// The following interfaces are included in the Diagonal
+	// interface to allow the use of Diagonal types in
+	// functions operating on these types.
+	Banded
+	SymBanded
+	Symmetric
+	Triangular
+	TriBanded
 }
 
 // MutableDiagonal is a Diagonal matrix whose elements can be set.
@@ -133,8 +124,8 @@ func (d *DiagDense) Bandwidth() (kl, ku int) {
 	return 0, 0
 }
 
-// Symmetric implements the Symmetric interface.
-func (d *DiagDense) Symmetric() int {
+// SymmetricDim implements the Symmetric interface.
+func (d *DiagDense) SymmetricDim() int {
 	return d.mat.N
 }
 
@@ -156,9 +147,10 @@ func (d *DiagDense) TriBand() (n, k int, kind TriKind) {
 	return d.mat.N, 0, Upper
 }
 
-// Reset zeros the length of the matrix so that it can be reused as the
+// Reset empties the matrix so that it can be reused as the
 // receiver of a dimensionally restricted operation.
 //
+// Reset should not be used when the matrix shares backing data.
 // See the Reseter interface for more information.
 func (d *DiagDense) Reset() {
 	// No change of Inc or n to 0 may be
@@ -181,10 +173,10 @@ func (d *DiagDense) DiagView() Diagonal {
 }
 
 // DiagFrom copies the diagonal of m into the receiver. The receiver must
-// be min(r, c) long or zero. Otherwise DiagFrom will panic.
+// be min(r, c) long or empty, otherwise DiagFrom will panic.
 func (d *DiagDense) DiagFrom(m Matrix) {
 	n := min(m.Dims())
-	d.reuseAs(n)
+	d.reuseAsNonZeroed(n)
 
 	var vec blas64.Vector
 	switch r := m.(type) {
@@ -283,13 +275,13 @@ func (d *DiagDense) RawSymBand() blas64.SymmetricBand {
 	}
 }
 
-// reuseAs resizes an empty diagonal to a r×r diagonal,
+// reuseAsNonZeroed resizes an empty diagonal to a r×r diagonal,
 // or checks that a non-empty matrix is r×r.
-func (d *DiagDense) reuseAs(r int) {
+func (d *DiagDense) reuseAsNonZeroed(r int) {
 	if r == 0 {
 		panic(ErrZeroLength)
 	}
-	if d.IsZero() {
+	if d.IsEmpty() {
 		d.mat = blas64.Vector{
 			Inc:  1,
 			Data: use(d.mat.Data, r),
@@ -302,10 +294,49 @@ func (d *DiagDense) reuseAs(r int) {
 	}
 }
 
-// IsZero returns whether the receiver is zero-sized. Zero-sized vectors can be the
-// receiver for size-restricted operations. DiagDenses can be zeroed using Reset.
-func (d *DiagDense) IsZero() bool {
+// IsEmpty returns whether the receiver is empty. Empty matrices can be the
+// receiver for size-restricted operations. The receiver can be emptied using
+// Reset.
+func (d *DiagDense) IsEmpty() bool {
 	// It must be the case that d.Dims() returns
 	// zeros in this case. See comment in Reset().
 	return d.mat.Inc == 0
+}
+
+// Trace returns the trace of the matrix.
+//
+// Trace will panic with ErrZeroLength if the matrix has zero size.
+func (d *DiagDense) Trace() float64 {
+	if d.IsEmpty() {
+		panic(ErrZeroLength)
+	}
+	rb := d.RawBand()
+	var tr float64
+	for i := 0; i < rb.Rows; i++ {
+		tr += rb.Data[rb.KL+i*rb.Stride]
+	}
+	return tr
+}
+
+// Norm returns the specified norm of the receiver. Valid norms are:
+//
+//	1 or Inf - The maximum diagonal element magnitude
+//	2 - The Frobenius norm, the square root of the sum of the squares of
+//	    the diagonal elements
+//
+// Norm will panic with ErrNormOrder if an illegal norm is specified and with
+// ErrZeroLength if the receiver has zero size.
+func (d *DiagDense) Norm(norm float64) float64 {
+	if d.IsEmpty() {
+		panic(ErrZeroLength)
+	}
+	switch norm {
+	default:
+		panic(ErrNormOrder)
+	case 1, math.Inf(1):
+		imax := blas64.Iamax(d.mat)
+		return math.Abs(d.at(imax, imax))
+	case 2:
+		return blas64.Nrm2(d.mat)
+	}
 }

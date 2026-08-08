@@ -11,13 +11,17 @@ import (
 )
 
 // Dgehrd reduces a block of a real n×n general matrix A to upper Hessenberg
-// form H by an orthogonal similarity transformation Q^T * A * Q = H.
+// form H by an orthogonal similarity transformation Qᵀ * A * Q = H.
 //
 // The matrix Q is represented as a product of (ihi-ilo) elementary
 // reflectors
-//  Q = H_{ilo} H_{ilo+1} ... H_{ihi-1}.
+//
+//	Q = H_{ilo} H_{ilo+1} ... H_{ihi-1}.
+//
 // Each H_i has the form
-//  H_i = I - tau[i] * v * v^T
+//
+//	H_i = I - tau[i] * v * vᵀ
+//
 // where v is a real vector with v[0:i+1] = 0, v[i+1] = 1 and v[ihi+1:n] = 0.
 // v[i+2:ihi+1] is stored on exit in A[i+2:ihi+1,i].
 //
@@ -30,21 +34,25 @@ import (
 // The contents of a are illustrated by the following example, with n = 7, ilo =
 // 1 and ihi = 5.
 // On entry,
-//  [ a   a   a   a   a   a   a ]
-//  [     a   a   a   a   a   a ]
-//  [     a   a   a   a   a   a ]
-//  [     a   a   a   a   a   a ]
-//  [     a   a   a   a   a   a ]
-//  [     a   a   a   a   a   a ]
-//  [                         a ]
+//
+//	[ a   a   a   a   a   a   a ]
+//	[     a   a   a   a   a   a ]
+//	[     a   a   a   a   a   a ]
+//	[     a   a   a   a   a   a ]
+//	[     a   a   a   a   a   a ]
+//	[     a   a   a   a   a   a ]
+//	[                         a ]
+//
 // on return,
-//  [ a   a   h   h   h   h   a ]
-//  [     a   h   h   h   h   a ]
-//  [     h   h   h   h   h   h ]
-//  [     v1  h   h   h   h   h ]
-//  [     v1  v2  h   h   h   h ]
-//  [     v1  v2  v3  h   h   h ]
-//  [                         a ]
+//
+//	[ a   a   h   h   h   h   a ]
+//	[     a   h   h   h   h   a ]
+//	[     h   h   h   h   h   h ]
+//	[     v1  h   h   h   h   h ]
+//	[     v1  v2  h   h   h   h ]
+//	[     v1  v2  v3  h   h   h ]
+//	[                         a ]
+//
 // where a denotes an element of the original matrix A, h denotes a
 // modified element of the upper Hessenberg matrix H, and vi denotes an
 // element of the vector defining H_i.
@@ -158,12 +166,12 @@ func (impl Implementation) Dgehrd(n, ilo, ihi int, a []float64, lda int, tau, wo
 			ib := min(nb, ihi-i)
 
 			// Reduce columns [i:i+ib] to Hessenberg form, returning the
-			// matrices V and T of the block reflector H = I - V*T*V^T
+			// matrices V and T of the block reflector H = I - V*T*Vᵀ
 			// which performs the reduction, and also the matrix Y = A*V*T.
 			impl.Dlahr2(ihi+1, i+1, ib, a[i:], lda, tau[i:], work[iwt:], ldt, work, ldwork)
 
 			// Apply the block reflector H to A[:ihi+1,i+ib:ihi+1] from the
-			// right, computing  A := A - Y * V^T. V[i+ib,i+ib-1] must be set
+			// right, computing  A := A - Y * Vᵀ. V[i+ib,i+ib-1] must be set
 			// to 1.
 			ei := a[(i+ib)*lda+i+ib-1]
 			a[(i+ib)*lda+i+ib-1] = 1

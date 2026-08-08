@@ -11,8 +11,8 @@ import (
 	"gonum.org/v1/gonum/lapack"
 )
 
-// Dlansy computes the specified norm of an n×n symmetric matrix. If
-// norm == lapack.MaxColumnSum or norm == lapackMaxRowSum work must have length
+// Dlansy returns the value of the specified norm of an n×n symmetric matrix. If
+// norm == lapack.MaxColumnSum or norm == lapack.MaxRowSum, work must have length
 // at least n, otherwise work is unused.
 func (impl Implementation) Dlansy(norm lapack.MatrixNorm, uplo blas.Uplo, n int, a []float64, lda int, work []float64) float64 {
 	switch {
@@ -39,8 +39,6 @@ func (impl Implementation) Dlansy(norm lapack.MatrixNorm, uplo blas.Uplo, n int,
 	}
 
 	switch norm {
-	default:
-		panic(badNorm)
 	case lapack.MaxAbs:
 		if uplo == blas.Upper {
 			var max float64
@@ -105,28 +103,23 @@ func (impl Implementation) Dlansy(norm lapack.MatrixNorm, uplo blas.Uplo, n int,
 			}
 		}
 		return max
-	case lapack.Frobenius:
+	default:
+		// lapack.Frobenius:
+		scale := 0.0
+		sum := 1.0
+		// Sum off-diagonals.
 		if uplo == blas.Upper {
-			var sum float64
-			for i := 0; i < n; i++ {
-				v := a[i*lda+i]
-				sum += v * v
-				for j := i + 1; j < n; j++ {
-					v := a[i*lda+j]
-					sum += 2 * v * v
-				}
+			for i := 0; i < n-1; i++ {
+				scale, sum = impl.Dlassq(n-i-1, a[i*lda+i+1:], 1, scale, sum)
 			}
-			return math.Sqrt(sum)
-		}
-		var sum float64
-		for i := 0; i < n; i++ {
-			for j := 0; j < i; j++ {
-				v := a[i*lda+j]
-				sum += 2 * v * v
+		} else {
+			for i := 1; i < n; i++ {
+				scale, sum = impl.Dlassq(i, a[i*lda:], 1, scale, sum)
 			}
-			v := a[i*lda+i]
-			sum += v * v
 		}
-		return math.Sqrt(sum)
+		sum *= 2
+		// Sum diagonal.
+		scale, sum = impl.Dlassq(n, a, lda+1, scale, sum)
+		return scale * math.Sqrt(sum)
 	}
 }

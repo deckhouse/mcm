@@ -39,7 +39,7 @@ type BreadthFirst struct {
 	Traverse func(graph.Edge) bool
 
 	queue   linear.NodeQueue
-	visited set.Int64s
+	visited set.Ints[int64]
 }
 
 // Walk performs a breadth-first traversal of the graph g starting from the given node,
@@ -49,7 +49,7 @@ type BreadthFirst struct {
 // non-nil, it is called with each node the first time it is visited.
 func (b *BreadthFirst) Walk(g Graph, from graph.Node, until func(n graph.Node, d int) bool) graph.Node {
 	if b.visited == nil {
-		b.visited = make(set.Int64s)
+		b.visited = make(set.Ints[int64])
 	}
 	b.queue.Enqueue(from)
 	if b.Visit != nil && !b.visited.Has(from.ID()) {
@@ -147,7 +147,7 @@ type DepthFirst struct {
 	Traverse func(graph.Edge) bool
 
 	stack   linear.NodeStack
-	visited set.Int64s
+	visited set.Ints[int64]
 }
 
 // Walk performs a depth-first traversal of the graph g starting from the given node,
@@ -157,35 +157,30 @@ type DepthFirst struct {
 // is called with each node the first time it is visited.
 func (d *DepthFirst) Walk(g Graph, from graph.Node, until func(graph.Node) bool) graph.Node {
 	if d.visited == nil {
-		d.visited = make(set.Int64s)
+		d.visited = make(set.Ints[int64])
 	}
 	d.stack.Push(from)
-	if d.Visit != nil && !d.visited.Has(from.ID()) {
-		d.Visit(from)
-	}
-	d.visited.Add(from.ID())
-
-	for d.stack.Len() > 0 {
-		t := d.stack.Pop()
-		if until != nil && until(t) {
-			return t
+	for d.stack.Len() != 0 {
+		u := d.stack.Pop()
+		uid := u.ID()
+		if d.visited.Has(uid) {
+			continue
 		}
-		tid := t.ID()
-		to := g.From(tid)
+		d.visited.Add(uid)
+		if d.Visit != nil {
+			d.Visit(u)
+		}
+		if until != nil && until(u) {
+			return u
+		}
+		to := g.From(uid)
 		for to.Next() {
-			n := to.Node()
-			nid := n.ID()
-			if d.Traverse != nil && !d.Traverse(g.Edge(tid, nid)) {
+			v := to.Node()
+			vid := v.ID()
+			if d.Traverse != nil && !d.Traverse(g.Edge(uid, vid)) {
 				continue
 			}
-			if d.visited.Has(nid) {
-				continue
-			}
-			if d.Visit != nil {
-				d.Visit(n)
-			}
-			d.visited.Add(nid)
-			d.stack.Push(n)
+			d.stack.Push(v)
 		}
 	}
 

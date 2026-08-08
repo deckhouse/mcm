@@ -14,8 +14,10 @@ import (
 // Dpbtf2 computes the Cholesky factorization of a symmetric positive banded
 // matrix ab. The matrix ab is n×n with kd diagonal bands. The Cholesky
 // factorization computed is
-//  A = U^T * U if ul == blas.Upper
-//  A = L * L^T if ul == blas.Lower
+//
+//	A = Uᵀ * U  if ul == blas.Upper
+//	A = L * Lᵀ  if ul == blas.Lower
+//
 // ul also specifies the storage of ab. If ul == blas.Upper, then
 // ab is stored as an upper-triangular banded matrix with kd super-diagonals,
 // and if ul == blas.Lower, ab is stored as a lower-triangular banded matrix
@@ -27,29 +29,29 @@ import (
 // The resulting Cholesky decomposition is stored in the same elements as the
 // input band matrix (a11 becomes u11 or l11, etc.).
 //
-//  ul = blas.Upper
-//  a11 a12 a13
-//  a22 a23 a24
-//  a33 a34 a35
-//  a44 a45 a46
-//  a55 a56  *
-//  a66  *   *
+//	ul = blas.Upper
+//	a11 a12 a13
+//	a22 a23 a24
+//	a33 a34 a35
+//	a44 a45 a46
+//	a55 a56  *
+//	a66  *   *
 //
-//  ul = blas.Lower
-//   *   *  a11
-//   *  a21 a22
-//  a31 a32 a33
-//  a42 a43 a44
-//  a53 a54 a55
-//  a64 a65 a66
+//	ul = blas.Lower
+//	 *   *  a11
+//	 *  a21 a22
+//	a31 a32 a33
+//	a42 a43 a44
+//	a53 a54 a55
+//	a64 a65 a66
 //
 // Dpbtf2 is the unblocked version of the algorithm, see Dpbtrf for the blocked
 // version.
 //
 // Dpbtf2 is an internal routine, exported for testing purposes.
-func (Implementation) Dpbtf2(ul blas.Uplo, n, kd int, ab []float64, ldab int) (ok bool) {
+func (Implementation) Dpbtf2(uplo blas.Uplo, n, kd int, ab []float64, ldab int) (ok bool) {
 	switch {
-	case ul != blas.Upper && ul != blas.Lower:
+	case uplo != blas.Upper && uplo != blas.Lower:
 		panic(badUplo)
 	case n < 0:
 		panic(nLT0)
@@ -59,27 +61,29 @@ func (Implementation) Dpbtf2(ul blas.Uplo, n, kd int, ab []float64, ldab int) (o
 		panic(badLdA)
 	}
 
+	// Quick return if possible.
 	if n == 0 {
-		return
+		return true
 	}
 
-	if len(ab) < (n-1)*ldab+kd {
+	if len(ab) < (n-1)*ldab+kd+1 {
 		panic(shortAB)
 	}
 
 	bi := blas64.Implementation()
 
 	kld := max(1, ldab-1)
-	if ul == blas.Upper {
+	if uplo == blas.Upper {
+		// Compute the Cholesky factorization A = Uᵀ * U.
 		for j := 0; j < n; j++ {
-			// Compute U(J,J) and test for non positive-definiteness.
+			// Compute U(j,j) and test for non-positive-definiteness.
 			ajj := ab[j*ldab]
 			if ajj <= 0 {
 				return false
 			}
 			ajj = math.Sqrt(ajj)
 			ab[j*ldab] = ajj
-			// Compute elements j+1:j+kn of row J and update the trailing submatrix
+			// Compute elements j+1:j+kn of row j and update the trailing submatrix
 			// within the band.
 			kn := min(kd, n-j-1)
 			if kn > 0 {
@@ -89,16 +93,16 @@ func (Implementation) Dpbtf2(ul blas.Uplo, n, kd int, ab []float64, ldab int) (o
 		}
 		return true
 	}
+	// Compute the Cholesky factorization A = L * Lᵀ.
 	for j := 0; j < n; j++ {
-		// Compute L(J,J) and test for non positive-definiteness.
+		// Compute L(j,j) and test for non-positive-definiteness.
 		ajj := ab[j*ldab+kd]
 		if ajj <= 0 {
 			return false
 		}
 		ajj = math.Sqrt(ajj)
 		ab[j*ldab+kd] = ajj
-
-		// Compute elements J+1:J+KN of column J and update the trailing submatrix
+		// Compute elements j+1:j+kn of column j and update the trailing submatrix
 		// within the band.
 		kn := min(kd, n-j-1)
 		if kn > 0 {
