@@ -87,10 +87,31 @@ type AWSMachineClassSpec struct {
 	SpotPrice            *string                     `json:"spotPrice,omitempty"`
 	SecretRef            *corev1.SecretReference     `json:"secretRef,omitempty"`
 	CredentialsSecretRef *corev1.SecretReference     `json:"credentialsSecretRef,omitempty"`
+	MetadataOptions      *AWSMetadataOptions         `json:"metadataOptions,omitempty"`
 
 	UseMachineNameAsNodeName bool `json:"useMachineNameAsNodeName,omitempty"`
 
 	// TODO add more here
+}
+
+// AWSMetadataOptions describes the instance metadata service (IMDS) options of the machine.
+// Please also see https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configuring-instance-metadata-options.html
+type AWSMetadataOptions struct {
+
+	// Whether the instance metadata service is available. Valid values are "enabled" and
+	// "disabled". Left to the AWS default ("enabled") when empty.
+	HTTPEndpoint string `json:"httpEndpoint,omitempty"`
+
+	// Whether a session token is required for metadata requests. Valid values are "optional"
+	// (IMDSv1 and IMDSv2 are both allowed) and "required" (IMDSv2 only). Left to the AWS
+	// default ("optional") when empty.
+	HTTPTokens string `json:"httpTokens,omitempty"`
+
+	// The desired HTTP PUT response hop limit for metadata requests, an integer from 1 to 64.
+	// Note that a request leaving a network namespace other than the host one (e. g. a request
+	// from a Pod) consumes one hop, so a limit of 1 makes IMDSv2 unreachable for such requests.
+	// Left to the AWS default (1) when nil.
+	HTTPPutResponseHopLimit *int64 `json:"httpPutResponseHopLimit,omitempty"`
 }
 
 type AWSBlockDeviceMappingSpec struct {

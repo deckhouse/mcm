@@ -714,10 +714,18 @@ type AWSMachineClassSpec struct {
 	SpotPrice            *string
 	SecretRef            *corev1.SecretReference
 	CredentialsSecretRef *corev1.SecretReference
+	MetadataOptions      *AWSMetadataOptions
 
 	UseMachineNameAsNodeName bool
 
 	// TODO add more here
+}
+
+// AWSMetadataOptions describes the instance metadata service (IMDS) options of the machine.
+type AWSMetadataOptions struct {
+	HTTPEndpoint            string
+	HTTPTokens              string
+	HTTPPutResponseHopLimit *int64
 }
 
 type AWSBlockDeviceMappingSpec struct {

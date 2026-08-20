@@ -289,4 +289,41 @@ var _ = Describe("Driver AWS", func() {
 			Expect(actual).To(Equal([]string{"vol-1234"}))
 		})
 	})
+
+	Context("#generateMetadataOptions", func() {
+
+		It("should return nothing when the machine class has no metadata options", func() {
+			Expect(generateMetadataOptions(nil)).To(BeNil())
+		})
+
+		It("should require session tokens when IMDSv2 is enforced", func() {
+			metadataOptions := generateMetadataOptions(&v1alpha1.AWSMetadataOptions{
+				HTTPTokens: "required",
+			})
+
+			Expect(metadataOptions).To(Equal(&ec2.InstanceMetadataOptionsRequest{
+				HttpTokens: aws.String("required"),
+			}))
+		})
+
+		It("should convert all the metadata options", func() {
+			metadataOptions := generateMetadataOptions(&v1alpha1.AWSMetadataOptions{
+				HTTPEndpoint:            "enabled",
+				HTTPTokens:              "required",
+				HTTPPutResponseHopLimit: aws.Int64(2),
+			})
+
+			Expect(metadataOptions).To(Equal(&ec2.InstanceMetadataOptionsRequest{
+				HttpEndpoint:            aws.String("enabled"),
+				HttpTokens:              aws.String("required"),
+				HttpPutResponseHopLimit: aws.Int64(2),
+			}))
+		})
+
+		It("should omit the fields left unset in the machine class", func() {
+			metadataOptions := generateMetadataOptions(&v1alpha1.AWSMetadataOptions{})
+
+			Expect(metadataOptions).To(Equal(&ec2.InstanceMetadataOptionsRequest{}))
+		})
+	})
 })

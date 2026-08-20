@@ -356,6 +356,54 @@ var _ = Describe("AWSMachineClass Validation", func() {
 			Expect(err).To(Equal(errExpected))
 		})
 
+		It("should validate metadata options successfully", func() {
+			hopLimit := int64(2)
+			spec := getSpec()
+			spec.MetadataOptions = &machine.AWSMetadataOptions{
+				HTTPEndpoint:            "enabled",
+				HTTPTokens:              "required",
+				HTTPPutResponseHopLimit: &hopLimit,
+			}
+
+			err := validateAWSMachineClassSpec(spec, field.NewPath("spec"))
+
+			Expect(err).To(Equal(field.ErrorList{}))
+		})
+
+		It("should get an error on metadata options validation - invalid values", func() {
+			invalidHopLimit := int64(65)
+			spec := getSpec()
+			spec.MetadataOptions = &machine.AWSMetadataOptions{
+				HTTPEndpoint:            "on",
+				HTTPTokens:              "v2",
+				HTTPPutResponseHopLimit: &invalidHopLimit,
+			}
+
+			err := validateAWSMachineClassSpec(spec, field.NewPath("spec"))
+
+			errExpected := field.ErrorList{
+				{
+					Type:     "FieldValueRequired",
+					Field:    "spec.metadataOptions.httpEndpoint",
+					BadValue: "",
+					Detail:   "Please mention a valid http endpoint state: enabled or disabled.",
+				},
+				{
+					Type:     "FieldValueRequired",
+					Field:    "spec.metadataOptions.httpTokens",
+					BadValue: "",
+					Detail:   "Please mention a valid http tokens state: optional or required.",
+				},
+				{
+					Type:     "FieldValueRequired",
+					Field:    "spec.metadataOptions.httpPutResponseHopLimit",
+					BadValue: "",
+					Detail:   "Please mention a valid http put response hop limit: an integer from 1 to 64.",
+				},
+			}
+			Expect(err).To(Equal(errExpected))
+		})
+
 		It("should get an error on BlockDevices validation - invalid volumeType", func() {
 			spec := getSpec()
 			spec.BlockDevices = []machine.AWSBlockDeviceMappingSpec{
