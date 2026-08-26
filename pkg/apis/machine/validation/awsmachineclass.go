@@ -97,6 +97,31 @@ func validateAWSMachineClassSpec(spec *machine.AWSMachineClassSpec, fldPath *fie
 	allErrs = append(allErrs, validateNetworkInterfaces(spec.NetworkInterfaces, field.NewPath("spec.networkInterfaces"))...)
 	allErrs = append(allErrs, validateSecretRef(spec.SecretRef, field.NewPath("spec.secretRef"))...)
 	allErrs = append(allErrs, validateAWSClassSpecTags(spec.Tags, field.NewPath("spec.tags"))...)
+	allErrs = append(allErrs, validateMetadataOptions(spec.MetadataOptions, field.NewPath("spec.metadataOptions"))...)
+
+	return allErrs
+}
+
+func validateMetadataOptions(metadataOptions *machine.AWSMetadataOptions, fldPath *field.Path) field.ErrorList {
+	allErrs := field.ErrorList{}
+
+	if metadataOptions == nil {
+		return allErrs
+	}
+
+	validHTTPEndpointValues := []string{"enabled", "disabled"}
+	if metadataOptions.HTTPEndpoint != "" && !contains(validHTTPEndpointValues, metadataOptions.HTTPEndpoint) {
+		allErrs = append(allErrs, field.Required(fldPath.Child("httpEndpoint"), "Please mention a valid http endpoint state: enabled or disabled."))
+	}
+
+	validHTTPTokensValues := []string{"optional", "required"}
+	if metadataOptions.HTTPTokens != "" && !contains(validHTTPTokensValues, metadataOptions.HTTPTokens) {
+		allErrs = append(allErrs, field.Required(fldPath.Child("httpTokens"), "Please mention a valid http tokens state: optional or required."))
+	}
+
+	if hopLimit := metadataOptions.HTTPPutResponseHopLimit; hopLimit != nil && (*hopLimit < 1 || *hopLimit > 64) {
+		allErrs = append(allErrs, field.Required(fldPath.Child("httpPutResponseHopLimit"), "Please mention a valid http put response hop limit: an integer from 1 to 64."))
+	}
 
 	return allErrs
 }

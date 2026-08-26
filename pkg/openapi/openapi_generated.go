@@ -37,6 +37,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AWSMachineClass":                               schema_pkg_apis_machine_v1alpha1_AWSMachineClass(ref),
 		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AWSMachineClassList":                           schema_pkg_apis_machine_v1alpha1_AWSMachineClassList(ref),
 		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AWSMachineClassSpec":                           schema_pkg_apis_machine_v1alpha1_AWSMachineClassSpec(ref),
+		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AWSMetadataOptions":                            schema_pkg_apis_machine_v1alpha1_AWSMetadataOptions(ref),
 		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AWSNetworkInterfaceSpec":                       schema_pkg_apis_machine_v1alpha1_AWSNetworkInterfaceSpec(ref),
 		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AlicloudDataDisk":                              schema_pkg_apis_machine_v1alpha1_AlicloudDataDisk(ref),
 		"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AlicloudMachineClass":                          schema_pkg_apis_machine_v1alpha1_AlicloudMachineClass(ref),
@@ -692,6 +693,11 @@ func schema_pkg_apis_machine_v1alpha1_AWSMachineClassSpec(ref common.ReferenceCa
 							Ref: ref("k8s.io/api/core/v1.SecretReference"),
 						},
 					},
+					"metadataOptions": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AWSMetadataOptions"),
+						},
+					},
 					"useMachineNameAsNodeName": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"boolean"},
@@ -702,7 +708,41 @@ func schema_pkg_apis_machine_v1alpha1_AWSMachineClassSpec(ref common.ReferenceCa
 			},
 		},
 		Dependencies: []string{
-			"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AWSBlockDeviceMappingSpec", "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AWSIAMProfileSpec", "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AWSNetworkInterfaceSpec", "k8s.io/api/core/v1.SecretReference"},
+			"github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AWSBlockDeviceMappingSpec", "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AWSIAMProfileSpec", "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AWSMetadataOptions", "github.com/gardener/machine-controller-manager/pkg/apis/machine/v1alpha1.AWSNetworkInterfaceSpec", "k8s.io/api/core/v1.SecretReference"},
+	}
+}
+
+func schema_pkg_apis_machine_v1alpha1_AWSMetadataOptions(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "AWSMetadataOptions describes the instance metadata service (IMDS) options of the machine. Please also see https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configuring-instance-metadata-options.html",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"httpEndpoint": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Whether the instance metadata service is available. Valid values are \"enabled\" and \"disabled\". Left to the AWS default (\"enabled\") when empty.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"httpTokens": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Whether a session token is required for metadata requests. Valid values are \"optional\" (IMDSv1 and IMDSv2 are both allowed) and \"required\" (IMDSv2 only). Left to the AWS default (\"optional\") when empty.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"httpPutResponseHopLimit": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The desired HTTP PUT response hop limit for metadata requests, an integer from 1 to 64. Note that a request leaving a network namespace other than the host one (e. g. a request from a Pod) consumes one hop, so a limit of 1 makes IMDSv2 unreachable for such requests. Left to the AWS default (1) when nil.",
+							Type:        []string{"integer"},
+							Format:      "int64",
+						},
+					},
+				},
+			},
+		},
 	}
 }
 

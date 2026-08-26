@@ -135,6 +135,7 @@ func (d *AWSDriver) Create() (string, string, error) {
 		},
 		BlockDeviceMappings: blkDeviceMappings,
 		TagSpecifications:   []*ec2.TagSpecification{tagInstance, tagVolume},
+		MetadataOptions:     generateMetadataOptions(d.AWSMachineClass.Spec.MetadataOptions),
 	}
 
 	if d.AWSMachineClass.Spec.SpotPrice != nil {
@@ -191,6 +192,34 @@ func (d *AWSDriver) generateTags(tags map[string]string, resourceType string) (*
 		Tags:         tagList,
 	}
 	return tagInstance, nil
+}
+
+// generateMetadataOptions converts the instance metadata service (IMDS) options of the machine
+// class into the shape expected by RunInstances. Fields left unset in the machine class are
+// omitted from the request, so the AWS defaults (endpoint enabled, tokens optional, hop limit 1)
+// keep applying to them.
+//
+// A machine class that sets none of the fields configures nothing, so it is treated exactly like
+// a machine class without metadataOptions at all: the request carries no metadata options rather
+// than an empty structure.
+func generateMetadataOptions(metadataOptions *v1alpha1.AWSMetadataOptions) *ec2.InstanceMetadataOptionsRequest {
+	if metadataOptions == nil || *metadataOptions == (v1alpha1.AWSMetadataOptions{}) {
+		return nil
+	}
+
+	request := &ec2.InstanceMetadataOptionsRequest{}
+
+	if metadataOptions.HTTPEndpoint != "" {
+		request.HttpEndpoint = aws.String(metadataOptions.HTTPEndpoint)
+	}
+	if metadataOptions.HTTPTokens != "" {
+		request.HttpTokens = aws.String(metadataOptions.HTTPTokens)
+	}
+	if metadataOptions.HTTPPutResponseHopLimit != nil {
+		request.HttpPutResponseHopLimit = aws.Int64(*metadataOptions.HTTPPutResponseHopLimit)
+	}
+
+	return request
 }
 
 func (d *AWSDriver) generateBlockDevices(blockDevices []v1alpha1.AWSBlockDeviceMappingSpec, rootDeviceName *string) ([]*ec2.BlockDeviceMapping, error) {
