@@ -320,10 +320,18 @@ var _ = Describe("Driver AWS", func() {
 			}))
 		})
 
-		It("should omit the fields left unset in the machine class", func() {
-			metadataOptions := generateMetadataOptions(&v1alpha1.AWSMetadataOptions{})
+		It("should return nothing when the machine class sets none of the options", func() {
+			Expect(generateMetadataOptions(&v1alpha1.AWSMetadataOptions{})).To(BeNil())
+		})
 
-			Expect(metadataOptions).To(Equal(&ec2.InstanceMetadataOptionsRequest{}))
+		It("should omit the fields left unset next to the ones that are set", func() {
+			metadataOptions := generateMetadataOptions(&v1alpha1.AWSMetadataOptions{
+				HTTPPutResponseHopLimit: aws.Int64(2),
+			})
+
+			Expect(metadataOptions).To(Equal(&ec2.InstanceMetadataOptionsRequest{
+				HttpPutResponseHopLimit: aws.Int64(2),
+			}))
 		})
 	})
 })

@@ -198,8 +198,12 @@ func (d *AWSDriver) generateTags(tags map[string]string, resourceType string) (*
 // class into the shape expected by RunInstances. Fields left unset in the machine class are
 // omitted from the request, so the AWS defaults (endpoint enabled, tokens optional, hop limit 1)
 // keep applying to them.
+//
+// A machine class that sets none of the fields configures nothing, so it is treated exactly like
+// a machine class without metadataOptions at all: the request carries no metadata options rather
+// than an empty structure.
 func generateMetadataOptions(metadataOptions *v1alpha1.AWSMetadataOptions) *ec2.InstanceMetadataOptionsRequest {
-	if metadataOptions == nil {
+	if metadataOptions == nil || *metadataOptions == (v1alpha1.AWSMetadataOptions{}) {
 		return nil
 	}
 
